@@ -1,0 +1,806 @@
+<div class="step-text">
+<h5 id="description">Description</h5>
+<p>Endpoints are a fundamental concept in RESTful architecture and are used to define the interfaces through which clients can interact with a RESTful service.</p>
+<p><br/>
+In this stage of development, we are actively working on implementing controller endpoints for the drone, medication, and user entities within the system. Below are some examples of endpoints for entities that we will build on top to perform CRUD operations. Create and run a SpringBoot application on the <code class="language-json">28852</code> port;</p>
+<p><code class="language-json">/api/drones/...<br/>
+/api/medications/...<br/>
+/api/users/...</code></p>
+<h5 id="objectives">Objectives</h5>
+<p>Create endpoints to interact with a JSON-based REST API, managing operations such as GET, POST, UPDATE, and DELETE for the Drone, Medication, and User entities. Below are some examples for drone, medication and user entities</p>
+<p>we'll also implement a response class. This class will be responsible for ensuring that appropriate response messages are delivered based on the outcome of each operation. For instance, if a new drone is successfully created, the response class will generate a JSON response with an "HTTP Status" of "OK" and a "Message" stating, "Drone created successfully." This response provides feedback to the user, indicating the status of the operation.</p>
+<p>To test your API, you may write Spring Boot tests, or use a rest client like <a href="https://www.getpostman.com/product/api-client" rel="noopener noreferrer nofollow" target="_blank">postman</a> or <a href="https://gist.github.com/subfuzion/08c5d85437d5d4f00e58" rel="noopener noreferrer nofollow" target="_blank">the curl tool</a>. GET requests can be tested by accessing the URL in your browser. You can also check your application in the browser using <a href="https://reqbin.com/" rel="noopener noreferrer nofollow" target="_blank">reqbin</a>. <br/>
+</p>
+<h5 id="drone-controller-endpoints-below">Drone Controller endpoints below</h5>
+<p>- <code class="language-json">POST /api/drones/create_drone</code></p>
+<p>- <code class="language-json">POST /api/drones/create_drones</code></p>
+<p>- <code class="language-json">PUT /api/drones/update_drone</code></p>
+<p>- <code class="language-json">DELETE /api/drones/delete_drone/{id}</code></p>
+<p>- <code class="language-json">GET /api/drones/get_drone/{id}</code></p>
+<p>- <code class="language-json">GET /api/drones/get_all_drones</code></p>
+<p> </p>
+<p><strong>Example 1</strong>: <em>creating a new drone with a valid request body</em>:</p>
+<p><em>Request: </em><code class="language-json">POST /api/drones/create_drone</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">{
+
+"serialNumber": "S001",
+
+"maxWeight": 100,
+
+"currentWeight": 0,
+
+"batteryCapacity": 10000,
+
+"currentState": "IDLE",
+
+"currentModel": "LIGHTWEIGHT",
+
+"currentCoordinate": "4.815600°N 7.049800°E"
+
+}</code></pre>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a POST request containing a status message and HTTP status.</p>
+<pre><code class="language-json">{
+
+    "message": "The drone with serial number S001 was created successfully.",
+
+    "httpStatus": "OK"
+}
+</code></pre>
+<p>Entering an invalid parameter for creating a new drone user would get the below response:</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The parameter you entered contains a null or invalid parameter, Please enter a valid drone parameter."
+
+}</code></pre>
+<p><strong>Example 2</strong>: <em>creating a list of drones with a valid request body</em>:</p>
+<p><em>Request: </em><code class="language-json">POST /api/drones/create_drones</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">[
+
+{
+
+ "serialNumber": "S002",
+
+"maxWeight": 250,
+
+"currentWeight": 0,
+
+"batteryCapacity": 12000,
+
+"state": "IDLE",
+
+"model": "MIDDLEWEIGHT",
+
+"currentCoordinate": "4.815600°N 7.049800°E"
+
+},
+
+{
+
+ "serialNumber": "S003",
+
+"maxWeight": 350,
+
+"currentWeight": 0,
+
+"batteryCapacity": 15000,
+
+"state": "IDLE",
+
+"model": "CRUISERWEIGHT",
+
+"currentCoordinate": "4.815600°N 7.049800°E"
+
+},
+
+{
+
+ "serialNumber": "S004",
+
+"maxWeight": 400,
+
+"currentWeight": 0,
+
+"batteryCapacity": 20000,
+
+"state": "IDLE",
+
+"model": "HEAVYWEIGHT",
+
+"currentCoordinate": "4.815600°N 7.049800°E"
+
+}
+
+]</code></pre>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a POST request containing a status message, HTTP status, and data payload.</p>
+<pre><code class="language-json">{
+
+    "data": [
+
+        "The drone with serial number S002 was created successfully.",
+
+        "The drone with serial number S003 was created successfully.",
+
+        "The drone with serial number S004 was created successfully."
+
+    ],
+
+    "httpStatus": "OK",
+
+    "message": "Drones created successfully."
+
+}</code></pre>
+<p> </p>
+<p><strong>Example 3</strong>: updating existing <em>drone data with a valid request body</em>:</p>
+<p>The ID in the example below is 0001</p>
+<p><em>Request: </em><code class="language-json">PUT /api/drones/update_drone/0001</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">{
+
+"serialNumber": "S001",
+
+"maxWeight": 100,
+
+"currentWeight": 60,
+
+"batteryCapacity": 10000,
+
+"currentState": "IDLE",
+
+"currentModel": "LIGHTWEIGHT",
+
+"currentCoordinate": "4.815600°N 7.049800°E"
+
+}</code></pre>
+<p> </p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a PUT request containing a message and HTTP status.</p>
+<pre><code class="language-json">{
+
+    "message": "The drone with serial number S001 was updated successfully.",
+
+    "httpStatus": "OK"
+}</code></pre>
+<p>If the drone serial number was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "message": "The drone with serial number S001 was not found.",
+
+    "httpStatus": "NOT_FOUND"
+}</code></pre>
+<p><strong>Example 4.</strong> Delete drone with ID</p>
+<p>The ID in the example below is 0001</p>
+<p>Request:  <code class="language-json">GET /api/drones/delete_drone/S001</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a DELETE request containing a status message and HTTP status.</p>
+<pre><code class="language-json">{
+    "httpStatus": "OK",
+
+    "message": "The drone with serial number S001 was deleted Successfully."
+
+}</code></pre>
+<p>If the drone serial number was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "message": "The drone with serial number S001 was not found.",
+
+    "httpStatus": "NOT_FOUND"
+}</code></pre>
+<p><strong>Example 5. </strong>Get drone with ID</p>
+<p>The ID in the example below is 0001</p>
+<p>Request:  <code class="language-json">GET /api/drones/get_drone/S001</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a GET request containing a status message, HTTP status, and data payload.</p>
+<pre><code class="language-json">{
+
+    "message": "Drone fetched successfully.",
+
+    "httpStatus": "OK",
+
+    "data": {
+
+        "serialNumber": "S001",
+
+        "currentWeight": 90,
+
+        "maxWeight": 100,
+
+        "batteryCapacity": 10000,
+
+        "model": "LIGHTWEIGHT",
+
+        "state": "IDLE",
+
+        "currentCoordinate": "4.815600°N 7.049800°E"
+
+    }
+
+}</code></pre>
+<p>If the drone serial number was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "NOT_FOUND",
+
+    "message": "The drone with serial number S0006 was not found."
+
+}</code></pre>
+<p><strong>Example 6. </strong>Get all drones</p>
+<p>Request:  <code class="language-json">GET /api/drones/get_all_drones</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a GET request containing a status message, HTTP status, and data payload.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "data": [
+
+        {
+
+            "serialNumber": "S001",
+
+            "currentWeight": 90,
+
+            "maxWeight": 100,
+
+            "batteryCapacity": 10000,
+
+            "model": "LIGHTWEIGHT",
+
+            "state": "IDLE",
+
+            "currentCoordinate": "4.815600°N 7.049800°E"
+
+        },
+
+        {
+
+            "serialNumber": "S002",
+
+            "currentWeight": 0,
+
+            "maxWeight": 250,
+
+            "batteryCapacity": 12000,
+
+            "model": "MIDDLEWEIGHT",
+
+            "state": "IDLE",
+
+            "currentCoordinate": "4.815600°N 7.049800°E"
+
+        },
+
+        {
+
+            "serialNumber": "S003",
+
+            "currentWeight": 0,
+
+            "maxWeight": 350,
+
+            "batteryCapacity": 15000,
+
+            "model": "CRUISERWEIGHT",
+
+            "state": "IDLE",
+
+            "currentCoordinate": "4.815600°N 7.049800°E"
+
+        },
+
+        {
+
+            "serialNumber": "S004",
+
+            "currentWeight": 0,
+
+            "maxWeight": 400,
+
+            "batteryCapacity": 20000,
+
+            "model": "HEAVYWEIGHT",
+
+            "state": "IDLE",
+
+            "currentCoordinate": "4.815600°N 7.049800°E"
+
+        }
+
+    ],
+
+    "message": "All drones fetched successfully."
+
+}</code></pre>
+<p>If the drone list is empty, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The drone list is empty."
+
+}</code></pre>
+<h5 id="medication-controller-endpoints-below">Medication Controller endpoints below</h5>
+<p>- <code class="language-json">POST /api/medications/create_medication</code> </p>
+<p>- <code class="language-json">POST /api/medications/create_medications</code></p>
+<p>- <code class="language-json">PUT /api/medications/update_medications</code></p>
+<p>- <code class="language-json">DELETE /api/medications/delete_medication</code></p>
+<p>- <code class="language-json">GET /api/medications/get_medications</code> </p>
+<p>- <code class="language-json">GET /api/medications/get_all_medication</code></p>
+<p><strong>Example 7</strong>: <em>creating a new medication with a valid request body</em>:</p>
+<p><em>Request: </em><code class="language-json">POST /api/medication/create_medication</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">{
+
+   "code":"XYGIY_06",
+
+    "name":"Paracetamol",
+
+    "weight":"30",
+
+    "imageURL":"https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&amp;h=180&amp;c=7&amp;r=0&amp;o=5&amp;pid=1.7"
+
+}</code></pre>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a POST request containing a status message below and HTTP status.</p>
+<pre><code class="language-json">{
+
+    "message": "The medication with code XYGIY_06 was created successfully.",
+
+    "httpStatus": "OK"
+
+}</code></pre>
+<p>Entering an invalid parameter for creating a new medication, the user would get the below response:</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The parameter you entered contains a null or invalid parameter, please enter a valid medication parameter."
+
+}</code></pre>
+<p><strong>Example 8</strong>:<strong> </strong><em>creating a list of medications with a valid request body</em>:</p>
+<p><em>Request: </em><code class="language-json">POST /api/medication/create_medications</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">[
+
+{
+
+   "code":"0363_0007",
+
+    "name":"omeprazole",
+
+    "weight":"25",
+
+    "imageURL":"https://www.drugs.com/images/pills/fio/GMK03970.JPG"
+
+},
+
+{
+
+   "code":"0591_0405",
+
+    "name":"Lisinopril",
+
+    "weight":"40",
+
+    "imageURL":"https://www.lupin.com/US/wp-content/uploads/2021/06/lisinopril-tablets-usp-40mg.jpg"
+
+},
+
+{
+
+   "code":"EM2N5P8",
+
+    "name":"Montelukast",
+
+    "weight":"50",
+
+    "imageURL":"https://th.bing.com/th/id/OIP.UKCusqDb2OqO0Yc7YkUZYwHaHa?pid=ImgDet&amp;rs=1"
+
+}
+
+]</code></pre>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a POST request containing a status message below, HTTP status, and data payload.</p>
+<pre><code class="language-json">{
+    "message": "Medications created successfully.",
+    "httpStatus": "OK",
+    "data": [
+        "The medication with code 0363_0007 was created successfully.",
+        "The medication with code 0591_0405 was created successfully.",
+        "The medication with code EM2N5P8 was created successfully."
+    ]
+}</code></pre>
+<p><strong>Example 9</strong>: updating existing <em>medication data with a valid request body</em>:</p>
+<p>The ID in the example below is 0363_0007</p>
+<p><em>Request: </em><code class="language-json">PUT /api/medication/update_medications/0363_0007</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">{
+
+   "code":"0363_0007",
+
+    "name":"omeprazole",
+
+    "weight":"15",
+
+    "imageURL":"https://www.drugs.com/images/pills/fio/GMK03970.JPG"
+
+}</code></pre>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a PUT request containing a status message and HTTP status.</p>
+<pre><code class="language-json">{
+
+    "message": "The medication with code 0363_0007 was updated successfully.",
+
+    "httpStatus": "OK"
+
+}</code></pre>
+<p>If the medication code was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "NOT_FOUND",
+
+    "message": "The medication with code 0363_0009 was not found."
+
+}</code></pre>
+<p><strong>Example 10. </strong>Delete medication with ID</p>
+<p>The ID in the example below is 0363_0007</p>
+<p>Request: <code class="language-json">DELETE /api/medications/delete_medication/0363_0007</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a DELETE request containing a status message and HTTP status.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The medication with code 0363_0007 was deleted Successfully."
+
+}</code></pre>
+<p>If the medication code was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "NOT_FOUND",
+
+    "message": "The medication with code 0363_0000 was not found."
+
+}</code></pre>
+<p><strong>Example 11. </strong>Get medication with ID</p>
+<p>The ID in the example below is 0591_0405</p>
+<p>Request: <code class="language-json">GET /api/medications/get_medication/0363_0007</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a GET request containing a status message, HTTP status, and data payload.</p>
+<pre><code class="language-json">{
+
+    "message": "Medication fetched successfully.",
+
+    "data": {
+
+        "code": "0591_0405",
+
+        "name": "Lisinopril",
+
+        "weight": 40,
+
+        "imageURL": "https://www.lupin.com/US/wp-content/uploads/2021/06/lisinopril-tablets-usp-40mg.jpg"
+
+    },
+
+    "httpStatus": "OK"
+
+}</code></pre>
+<p>If the medication code was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "message": "The medication with code 0591_0403 was not found.",
+
+    "httpStatus": "NOT_FOUND"
+
+}</code></pre>
+<p><strong>Example 12. </strong>Get all medications.</p>
+<p>Request:  <code class="language-json">GET /api/medications/get_all_medications</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a GET request containing a status message and data payload.</p>
+<pre><code class="language-json">{
+
+    "message": "All medications fetched successfully.",
+
+    "data": [
+
+        {
+
+            "code": "0363_0007",
+
+            "name": "omeprazole",
+
+            "weight": 25,
+
+            "imageURL": "https://www.drugs.com/images/pills/fio/GMK03970.JPG"
+
+        },
+
+        {
+
+            "code": "0591_0405",
+
+            "name": "Lisinopril",
+
+            "weight": 40,
+
+            "imageURL": "https://www.lupin.com/US/wp-content/uploads/2021/06/lisinopril-tablets-usp-40mg.jpg"
+
+        },
+
+        {
+
+            "code": "EM2N5P8",
+
+            "name": "Montelukast",
+
+            "weight": 50,
+
+            "imageURL": "https://th.bing.com/th/id/OIP.UKCusqDb2OqO0Yc7YkUZYwHaHa?pid=ImgDet&amp;rs=1"
+
+        }
+
+    ],
+
+    "httpStatus": "OK"
+
+}</code></pre>
+<p>If the medication list is empty, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The medication list is empty."
+
+}</code></pre>
+<h5 id="user-controller-endpoints-below">User Controller endpoints below.</h5>
+<p>- <code class="language-json">POST /api/users/create_user</code></p>
+<p>- <code class="language-json">POST /api/users/create_users</code></p>
+<p>- <code class="language-json">UPDATE /api/users/update_user</code></p>
+<p>- <code class="language-json">DELETE /api/users/delete_user</code></p>
+<p>- <code class="language-json">GET /api/users/get_user</code></p>
+<p>- <code class="language-json">GET /api/users/get_all_users</code></p>
+<p><strong>Example 13</strong>: <strong><em>creating a new user account with a valid request body</em>:</strong></p>
+<p><em>Request: </em><code class="language-json">POST /api/users/create_users</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">{
+
+    "account":"ADMIN",
+
+    "name":"Emily_Davis",
+
+    "phoneNumber":"4157890123",
+
+    "address":"789_Cedar_Street_Sacramento_California(CA)_95814",
+
+    "gpsCoordinate":"4.8156_7.0498"
+
+}</code></pre>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a POST request containing a status message and HTTP status.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The user with phone number 4157890123 was created successfully."
+
+}</code></pre>
+<p>Entering an invalid parameter for creating a new user account user would get below response:</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The parameter you entered contains a null or invalid parameter, Please enter a valid user account parameter."
+
+}</code></pre>
+<p><strong>Example 14</strong>: <em>creating a list of users with a valid request body</em>:</p>
+<p><em>Request: </em><code class="language-json">POST /api/users/create_users</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">{
+
+    "data": [
+
+        "The user with phone number 5109876543 was created successfully.",
+
+        "The user with phone number 6504321876 was created successfully.",
+
+        "The user with phone number 9163456789 was created successfully."
+
+    ],
+
+    "httpStatus": "OK",
+
+    "message": "Users created successfully."
+
+}</code></pre>
+<p><strong>Example 15</strong>:<strong> </strong>updating existing <em>user data with a valid request body</em>:</p>
+<p>The ID in the example below is 4157890123</p>
+<p><em>Request: </em><code class="language-json">PUT /api/users/update_user/4157890123</code></p>
+<p><em>Request body:</em></p>
+<pre><code class="language-json">{
+
+    "account":"ADMIN",
+
+    "name":"Emily_Davis",
+
+    "phoneNumber":"4157890123",
+
+    "address":"889 west street Street Sacramento California(CA)_95814",
+
+    "gpsCoordinate":"4.8156_7.0498"
+
+}</code></pre>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a PUT request containing a message and http status.</p>
+<pre><code class="language-json">{
+
+    "message": "The user with phone number 4157890123 was updated successfully.",
+
+    "httpStatus": "OK"
+
+}</code></pre>
+<p>If the user phone number was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "message": "The user with phone number 4157890125 was not found.",
+
+    "httpStatus": "NOT_FOUND"
+
+}</code></pre>
+<p><strong>Example 16.</strong> Delete user with phone number.</p>
+<p>The phone number in the example below is 4157890123</p>
+<p>Request: <code class="language-json">GET /api/users/delete_user/4157890123</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a DELETE request containing a status message and HTTP status.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The user with phone number 4157890123 was deleted Successfully."
+
+}</code></pre>
+<p>If the user's phone number was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "NOT_FOUND",
+
+    "message": "The user with phone number 4157890124 was not found."
+
+}</code></pre>
+<p><strong>Example 17. </strong>Get User with phone number.</p>
+<p>The id in the example below is 4157890123</p>
+<p>Request:  <code class="language-json">GET /api/users/get_user/4157890123</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a GET request containing a status message, HTTP status, and data payload.</p>
+<pre><code class="language-json">{
+
+    "data": {
+
+        "name": "Emily_Davis",
+
+        "phoneNumber": "4157890123",
+
+        "address": "789_Cedar_Street_Sacramento_California(CA)_95814",
+
+        "gpsCoordinate": "4.8156_7.0498",
+
+        "account": "ADMIN"
+
+    },
+
+    "httpStatus": "OK",
+
+    "message": "User fetched successfully."
+
+}</code></pre>
+<p>If the user's phone number was not found, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "NOT_FOUND",
+
+    "message": "The user with phone number 4157890127 was not found."
+
+}</code></pre>
+<p><strong>Example 18. </strong>Get all users</p>
+<p>Request:  <code class="language-json">GET /api/users/get_all_users</code></p>
+<p><strong><em>Response body:</em></strong></p>
+<p>Response</p>
+<p>You will receive a JSON response for a GET request containing a status message, HTTP status, and data payload.</p>
+<pre><code class="language-json">{
+
+    "data": [
+
+        {
+
+            "name": "John Smith",
+
+            "phoneNumber": "5109876543",
+
+            "address": "456 Pine Avenue Los Angeles California(CA) 90001",
+
+            "gpsCoordinate": "4.8156_7.0498",
+
+            "account": "CUSTOMER"
+
+        },
+
+        {
+
+            "name": "Olivia White",
+
+            "phoneNumber": "6504321876",
+
+            "address": "202 Birch Street San Jose California(CA) 95110",
+
+            "gpsCoordinate": "4.8156_7.0498",
+
+            "account": "CUSTOMER"
+
+        },
+
+        {
+
+            "name": "Michael Martinez",
+
+            "phoneNumber": "9163456789",
+
+            "address": "101 Walnut Avenue San Diego California(CA) 92101",
+
+            "gpsCoordinate": "4.8156_7.0498",
+
+            "account": "GUEST"
+
+        },
+
+        {
+
+            "name": "Emily_Davis",
+
+            "phoneNumber": "4157890123",
+
+            "address": "789_Cedar_Street_Sacramento_California(CA)_95814",
+
+            "gpsCoordinate": "4.8156_7.0498",
+
+            "account": "ADMIN"
+
+        }
+
+    ],
+
+    "httpStatus": "OK",
+
+    "message": "All users fetched successfully."
+
+}</code></pre>
+<p>If the user list is empty, the request should return below.</p>
+<pre><code class="language-json">{
+
+    "httpStatus": "OK",
+
+    "message": "The user list is empty."
+
+}</code></pre>
+
+</div>

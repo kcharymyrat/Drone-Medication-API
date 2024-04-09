@@ -1,0 +1,1722 @@
+type: edu
+files:
+  - name: src/DroneMed/DroneMedicationAPIApplication.java
+    visible: true
+    text: |-
+      package DroneMed;
+      
+      
+      import org.springframework.boot.SpringApplication;
+      import org.springframework.boot.autoconfigure.SpringBootApplication;
+      
+      @SpringBootApplication
+      public class DroneMedicationAPIApplication {
+      
+          public static void main(String[] args)  throws Exception {
+              SpringApplication.run(DroneMedicationAPIApplication.class, args);
+          }
+      
+      
+      }
+    learner_created: false
+  - name: src/DroneMed/Runner.java
+    visible: true
+    text: |
+      package DroneMed;
+      
+      import DroneMed.models.Drone;
+      import DroneMed.models.Medication;
+      import DroneMed.models.UserAccount;
+      import DroneMed.service.DroneService;
+      import DroneMed.service.MedicationService;
+      import DroneMed.service.UserService;
+      import org.springframework.boot.CommandLineRunner;
+      import org.springframework.stereotype.Component;
+      
+      import java.util.List;
+      import java.util.Optional;
+      import java.util.Scanner;
+      import java.util.Stack;
+      
+      @Component
+      public class Runner implements CommandLineRunner {
+      
+          private final DroneService droneService;
+      
+          private final MedicationService medicationService;
+      
+          private final UserService userService;
+      
+          private final String INVALID_RESPONSE = "Invalid response, please enter a valid response.";
+          private final String INVALID_DRONE_PARAM = "The parameters you entered are not valid drone parameters, please enter a valid drone parameter.";
+          private final String INVALID_MED_PARAM = "The parameters you entered are not valid medication parameters, please enter a valid medication parameter.";
+          private final String INVALID_USER_PARAM = "The parameters you entered are not valid userAccounts parameters, please enter a valid userAccounts parameter.";
+      
+          public Runner(DroneService droneService, MedicationService medicationService, UserService userService) {
+              this.droneService = droneService;
+              this.medicationService = medicationService;
+              this.userService = userService;
+          }
+      
+          @Override
+          public void run(String... args) throws Exception {
+              Scanner scanner = new Scanner(System.in);
+              System.out.println("Enter instruction for drone medication API...");
+              int response = 0;
+              lastResponse = response;
+              currentAction = Action.DEFAULT;
+              currentMode = Mode.DEFAULT;
+              availableOptions = 4;
+              System.out.println(options[response]);
+      
+              while (running) {
+      
+                  //We expect int response
+                  if (currentMode == Mode.DEFAULT) {
+                      try {
+                          response = scanner.nextInt();
+                          if(currentAction == Action.DEFAULT && (response < BASE_OPTION || response > availableOptions)) {
+                              System.out.println(INVALID_RESPONSE);
+                              response = lastResponse; //reset response to default;
+                          }
+                          else if(currentAction != Action.DEFAULT && (response < BASE_OPTION || response > availableOptions)) {
+                              System.out.println(INVALID_RESPONSE);
+                              response = lastResponse; //reset response to default;
+                          }
+                          else response = processResponse(response, "");
+                      }
+                      catch (Exception e) {
+                          System.out.println(INVALID_RESPONSE);
+                          scanner.nextLine(); //this is to consume the invalid response
+                      }
+      
+                  }
+                  else {
+                      //We expect string response
+                      String info = scanner.nextLine();
+      
+                      if(processOptionsB(info)) {
+                          response = processResponse(lastResponse, info);
+                      }
+                  }
+      
+                  if(currentMode == Mode.DEFAULT) {
+                      System.out.println(options[response]);
+                  }
+              }
+      
+              scanner.close();
+          }
+      
+          public enum Action {
+              DEFAULT,
+              DRONES,
+              MEDICATIONS,
+              USERACCOUNTS
+          }
+      
+          public enum Mode {
+              DEFAULT,
+              DETAILS,
+              UPDATES,
+          }
+      
+      
+      
+          String[] options = new String[]{
+                  """
+                  1. Drones
+                  2. Medications
+                  3. UserAccounts
+                  4. Exit""",
+                  """
+                  1. View Drones
+                  2. Create Drone
+                  3. Update Drone
+                  4. Delete Drone
+                  5. Get Drone
+                  6. Back""",
+                  """
+                  1. View Medications
+                  2. Create Medication
+                  3. Update Medication
+                  4. Delete Medication
+                  5. Get Medication
+                  6. Back""",
+                  """
+                  1. View UserAccounts
+                  2. Create UserAccount
+                  3. Update UserAccount
+                  4. Delete UserAccount
+                  5. Get UserAccount
+                  6. Back"""
+          };
+      
+          Action currentAction;
+      
+          Mode currentMode;
+      
+          //Stack<Action> lastAction = new Stack();
+      
+          //To keep response backstack
+          Stack<Integer> stack = new Stack();
+      
+          //flag to exist app
+          boolean running = true;
+      
+          //User Response
+          int lastResponse;
+      
+          int availableOptions = 0;
+          final int BASE_OPTION = 1;
+      
+          private Optional<Drone> buildDrone(String[] values) {
+      
+              try {
+                  Drone drone = Drone.builder()
+                          .serialNumber(values[0].trim())
+                          .maxWeight(Integer.parseInt(values[1].trim()))
+                          .currentWeight(Integer.parseInt(values[2].trim()))
+                          .batteryCapacity(Integer.parseInt(values[3].trim()))
+                          .state(Drone.State.valueOf(values[4].trim()))
+                          .model(Drone.Model.valueOf(values[5].trim()))
+                          .currentCoordinate(values[6].trim())
+                          .build();
+      
+                  return Optional.ofNullable(drone);
+              } catch (Exception e) {
+                  System.out.println(INVALID_DRONE_PARAM);
+              }
+      
+              return Optional.ofNullable(null);
+          }
+      
+          private Optional<Medication> buildMedication(String[] values) {
+      
+              try {
+                  Medication medication = Medication.builder()
+                          .code(values[0].trim())
+                          .name(values[1].trim())
+                          .weight(Integer.parseInt(values[2].trim()))
+                          .imageURL(values[3].trim())
+                          .build();
+      
+                  return Optional.ofNullable(medication);
+              } catch (Exception e) {
+                  System.out.println(INVALID_MED_PARAM);
+              }
+      
+              return Optional.ofNullable(null);
+          }
+      
+          private Optional<UserAccount> buildUserAccounts(String[] values) {
+      
+              try {
+                  UserAccount userAccount = UserAccount.builder()
+                          .account(UserAccount.Account.valueOf(values[0].trim()))
+                          .name(values[1].trim())
+                          .phoneNumber(values[2].trim())
+                          .address(values[3].trim())
+                          .gpsCoordinate(values[4].trim())
+                          .build();
+      
+                  return Optional.ofNullable(userAccount);
+              } catch (Exception e) {
+                  System.out.println(INVALID_USER_PARAM);
+              }
+      
+              return Optional.ofNullable(null);
+          }
+      
+      
+          private int processResponse(int res, String info) {
+      
+              int value = res;
+              //lastResponse = res;
+      
+              if(currentAction == Action.DEFAULT) {
+                  if(value == 4) {
+                      System.exit(0);
+                  }
+                  else if (value >= 1 && value <= 4) {
+                      //Set Action
+                      if(value == 0) currentAction = Action.DEFAULT;
+                      else if(value == 1) currentAction = Action.DRONES;
+                      else if(value == 2) currentAction = Action.MEDICATIONS;
+                      else if(value == 3) currentAction = Action.USERACCOUNTS;
+      
+                      if(stack.size() < 1)  stack.push(0);
+                      lastResponse = value;
+                      availableOptions = 6;
+                      return value;
+                  }
+                  else {
+                      System.out.println(INVALID_RESPONSE);
+                      return  lastResponse;
+                  }
+              }
+              else if(currentAction == Action.DRONES && currentMode == Mode.DEFAULT) {
+                  if(value == 6) {
+                      currentAction = Action.DEFAULT;
+                      availableOptions = 4;
+                      return stack.pop();
+                  }
+                  else if (value >= 1 && value <= 5) {
+                      if(stack.size() < 2) stack.push(1);
+                      DroneProcessor(value, info);
+                      lastResponse = value;
+                      return value;
+                  }
+                  else {
+                      System.out.println(INVALID_RESPONSE);
+                      return  lastResponse;
+                  }
+              }
+              else if(currentAction == Action.MEDICATIONS && currentMode == Mode.DEFAULT) {
+                  if(value == 6) {
+                      currentAction = Action.DEFAULT;
+                      availableOptions = 4;
+                      return stack.pop();
+                  }
+                  else if (value >= 1 && value <= 5) {
+                      if(stack.size() < 2)  stack.push(2);
+                      MedicationProcessor(value, info);
+                      lastResponse = value;
+                      return value;
+                  }
+                  else {
+                      System.out.println(INVALID_RESPONSE);
+                      return  lastResponse;
+                  }
+              }
+              else if(currentAction == Action.USERACCOUNTS && currentMode == Mode.DEFAULT) {
+                  if(value == 6) {
+                      currentAction = Action.DEFAULT;
+                      availableOptions = 4;
+                      return stack.pop();
+                  }
+                  else if (value >= 1 && value <= 5) {
+                      if(stack.size() < 2)  stack.push(3);
+                      UserAccountProcessor(value, info);
+                      lastResponse = value;
+                      return value;
+                  }
+                  else {
+                      System.out.println(INVALID_RESPONSE);
+                      return  lastResponse;
+                  }
+              }
+              else if(currentMode == Mode.DETAILS ) {
+                  if(value == 1 || info.equals("1")) {
+                      availableOptions = 6;
+                      currentMode = Mode.DEFAULT;
+                      lastResponse = stack.peek();
+                      return stack.pop();
+                  }
+                  else if(value == 2) {
+                      if(currentAction == Action.DRONES) {
+                          if(lastResponse == 2 || lastResponse == 3) {
+                              DroneProcessor(2, "");
+                          }
+                          else   DroneProcessor(lastResponse, "");
+                      }
+                      else if(currentAction == Action.MEDICATIONS) {
+                          if(lastResponse == 2 || lastResponse == 3) {
+                              MedicationProcessor(2, "");
+                          }
+                          else MedicationProcessor(lastResponse, "");
+                      }
+                      else if(currentAction == Action.USERACCOUNTS) {
+                          if(lastResponse == 2 || lastResponse == 3) {
+                              UserAccountProcessor(2, "");
+                          }
+                          else UserAccountProcessor(lastResponse, "");
+                      }
+                  }
+                  else if(checkValidInt(info) && info.equals("2")) {
+                      if(currentAction == Action.DRONES) {
+                          DroneProcessor(lastResponse, info);
+                      }
+                      else if(currentAction == Action.MEDICATIONS) {
+                          MedicationProcessor(lastResponse, info);
+                      }
+                      else if(currentAction == Action.USERACCOUNTS) {
+                          UserAccountProcessor(lastResponse, info);
+                      }
+                  }
+                  else {
+                      System.out.println(INVALID_RESPONSE);
+                      return  lastResponse;
+                  }
+              }
+              else if(currentMode == Mode.UPDATES) {
+                  //Check if back was clicked
+                  if(checkValidInt(info) && Integer.parseInt(info) == 1) {
+                      currentMode = Mode.DEFAULT;
+                      availableOptions = 6;
+                      lastResponse = stack.peek();
+                      return stack.pop();
+                  }
+      
+                  //String[] values = info.replaceAll("\\s+", "").split(",");
+                  String[] values = info.trim().split(",");
+      
+                  availableOptions = 2;
+      
+                  //Create and update
+                  if(value == 2 || value == 3) {
+                      if(currentAction == Action.DRONES) {
+                          if(values.length == 0 || values.length != 7) {
+                              System.out.println(INVALID_DRONE_PARAM);
+                          }
+                          else if( value == 2) {
+                              Optional<Drone> drone = buildDrone(values);
+                              if (drone.isPresent()) {
+                                  String response = droneService.createDrone(drone.get());
+                                  System.out.println("Create Drones" + "\n" + "1. Back" + "\n" + "2. Create more Drones");
+                                  System.out.println(response);
+                                  currentMode = Mode.DETAILS;
+                              }
+                          }
+                          else if( value == 3) {
+                              Optional<Drone> drone = buildDrone(values);
+                              if (drone.isPresent()) {
+                                  String response = droneService.updateDrone(drone.get());
+                                  System.out.println("Updated Drone" + "\n" + "1. Back" + "\n" + "2. Update more Drones");
+                                  System.out.println(response);
+                                  currentMode = Mode.DETAILS;
+                              }
+                          }
+                      }
+                      else if(currentAction == Action.MEDICATIONS) {
+                          if(values.length == 0 || values.length != 4) {
+                              System.out.println(INVALID_MED_PARAM);
+                          }
+                          else if( value == 2) {
+                              Optional<Medication> medication = buildMedication(values);
+                              if (medication.isPresent()) {
+                                  String response = medicationService.createMedication(medication.get());
+                                  System.out.println("Create medications" + "\n" + "1. Back" + "\n" + "2. Create more medications");
+                                  System.out.println(response);
+                                  currentMode = Mode.DETAILS;
+                              }
+                          }
+                          else if( value == 3) {
+                              Optional<Medication> medication = buildMedication(values);
+                              if (medication.isPresent()) {
+                                  String response = medicationService.updateMedication(medication.get());
+                                  System.out.println("Updated medications" + "\n" + "1. Back" + "\n" + "2. Update more medications");
+                                  System.out.println(response);
+                                  currentMode = Mode.DETAILS;
+                              }
+                          }
+                      }
+                      else if(currentAction == Action.USERACCOUNTS) {
+                          if(values.length == 0 || values.length != 5) {
+                              System.out.println(INVALID_USER_PARAM);
+                          }
+                          else if( value == 2) {
+                              Optional<UserAccount> userAccount = buildUserAccounts(values);
+                              if (userAccount.isPresent()) {
+                                  String response = userService.createUser(userAccount.get());
+                                  System.out.println("Create userAccounts" + "\n" + "1. Back" + "\n" + "2. Create more userAccounts");
+                                  System.out.println(response);
+                                  currentMode = Mode.DETAILS;
+                              }
+                          }
+                          else if( value == 3) {
+                              Optional<UserAccount> userAccount = buildUserAccounts(values);
+                              if (userAccount.isPresent()) {
+                                  String response = userService.updateUser(userAccount.get());
+                                  System.out.println("Updated userAccounts" + "\n" + "1. Back" + "\n" + "2. Update more userAccounts");
+                                  System.out.println(response);
+                                  currentMode = Mode.DETAILS;
+                              }
+                          }
+                      }
+                  } else if (value == 4 || value == 5) {
+                      if(currentAction == Action.DRONES) {
+                          if( value == 4) {
+      
+                              String response = droneService.deleteDrone(values[0]);
+                              System.out.println("Delete Drones" + "\n" + "1. Back" + "\n" + "2. Delete more Drones");
+                              System.out.println(response);
+                              // if(!response.endsWith("not found.")) {
+                              currentMode = Mode.DETAILS;
+                              //}
+      
+      
+                          }
+                          else if( value == 5) {
+                              Optional<Drone> drone = droneService.getDrone(values[0]);
+                              System.out.println("Get Drone" + "\n" + "1. Back" + "\n" + "2. Get more Drones");
+                              if(drone.isPresent()) {
+                                  System.out.println(drone.get().toString());
+                              }
+                              else System.out.println("Drone with serial number " + values[0] + " not found.");
+                              currentMode = Mode.DETAILS;
+                          }
+                      }
+                      else if(currentAction == Action.MEDICATIONS) {
+                          if( value == 4) {
+      
+                              String response = medicationService.deleteMedication(values[0]);
+                              System.out.println("Delete medications" + "\n" + "1. Back" + "\n" + "2. Delete more medications");
+                              System.out.println(response);
+                              currentMode = Mode.DETAILS;
+      
+                          }
+                          else if( value == 5) {
+                              Optional<Medication> medication = medicationService.getMedication(values[0]);
+                              System.out.println("Get medications" + "\n" + "1. Back" + "\n" + "2. Get more medications");
+                              if(medication.isPresent()) {
+                                  System.out.println(medication.get().toString());
+                              }
+                              else System.out.println("Medication with code " + values[0] + " not found.");
+                              currentMode = Mode.DETAILS;
+                          }
+                      }
+                      else if(currentAction == Action.USERACCOUNTS) {
+                          if( value == 4) {
+      
+                              String response =  userService.deleteUser(values[0]);
+                              System.out.println("Delete userAccounts" + "\n" + "1. Back" + "\n" + "2. Delete more userAccounts");
+                              System.out.println(response);
+                              currentMode = Mode.DETAILS;
+      
+                          }
+                          else if( value == 5) {
+                              Optional<UserAccount> userAccount =  userService.getUser(values[0]);
+                              System.out.println("Get userAccounts" + "\n" + "1. Back" + "\n" + "2. Get more userAccounts");
+                              if(userAccount.isPresent()) {
+                                  System.out.println(userAccount.get().toString());
+                              }
+                              else System.out.println("UserAccount with phone number " + values[0] + " not found.");
+                              currentMode = Mode.DETAILS;
+                          }
+                      }
+                  }
+      
+                  return lastResponse;
+              }
+      
+      
+      
+              return  0;
+          }
+      
+          private boolean checkValidInt(String s) {
+              try {
+                  if(s.length() > 1) return false;
+                  int number = Integer.parseInt(s);
+                  return true;
+              } catch (NumberFormatException e) {
+                  return false;
+              }
+          }
+      
+          private void UserAccountProcessor(int option, String info) {
+              availableOptions = 1;
+              if(option == 1) {
+      
+                  System.out.println("View UserAccounts" + "\n" + "1. Back");
+                  currentMode = Mode.DETAILS;
+                  List<UserAccount> userAccounts = userService.getAllUsers();
+      
+                  if(userAccounts.isEmpty()) System.out.println("The UserAccounts list is empty.");
+                  else {
+                      System.out.println("UserAccounts list");
+                      for (int i=0; i < userAccounts.size(); i++) {
+                          System.out.println(i + 1  + ". " + userAccounts.get(i).toString());
+                      }
+                  }
+              }
+              else if(option == 2) {
+                  System.out.println("Create UserAccount" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+                  System.out.println("Enter new UserAccount information...." + "\n" + "User accountType, name, phoneNumber, address, gps coordinates ");
+      
+              }
+              else if(option == 3) {
+                  System.out.println("Update UserAccount" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  List<UserAccount> userAccounts = userService.getAllUsers();
+      
+                  if(userAccounts.isEmpty()) System.out.println("The UserAccounts list is empty.");
+                  else {
+                      System.out.println("UserAccounts list");
+                      for (int i=0; i < userAccounts.size(); i++) {
+                          System.out.println(i + 1  + ". " + userAccounts.get(i).toString());
+                      }
+      
+                      System.out.println("Enter UserAccount ID to update...." + "\n" + "User accountType, name, phoneNumber, address, gps coordinates  ");
+                  }
+              }
+              else if(option == 4) {
+                  System.out.println("Delete UserAccount" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+                  List<UserAccount> userAccounts = userService.getAllUsers();
+      
+                  if(userAccounts.isEmpty()) System.out.println("The UserAccounts list is empty.");
+                  else {
+                      System.out.println("UserAccounts list");
+                      for (int i=0; i < userAccounts.size(); i++) {
+                          System.out.println(i + 1  + ". " + userAccounts.get(i).toString());
+                      }
+      
+                      System.out.println("Enter UserAccount ID to Delete...");
+                  }
+              }
+              else if(option == 5) {
+                  System.out.println("Get UserAccount" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+                  System.out.println("Enter the UserAccount ID that you want to retrieve.");
+              }
+          }
+      
+          private void MedicationProcessor(int option, String info) {
+              availableOptions = 1;
+              if(option == 1) {
+                  System.out.println("View medications" + "\n" + "1. Back");
+                  currentMode = Mode.DETAILS;
+                  List<Medication> medications = medicationService.getAllMedication();
+      
+                  if(medications.isEmpty()) System.out.println("The medication list is empty.");
+                  else {
+                      System.out.println("Medications list");
+                      for (int i=0; i < medications.size(); i++) {
+                          System.out.println(i + 1  + ". " + medications.get(i).toString());
+                      }
+                  }
+              }
+              else if(option == 2) {
+                  System.out.println("Create medications" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  System.out.println("Enter new medication information...." + "\n" + "medication code, name, weight, imageURL ");
+      
+              }
+              else if(option == 3) {
+                  System.out.println("Update medications" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  List<Medication> medications = medicationService.getAllMedication();
+      
+                  if(medications.isEmpty()) System.out.println("The medications list is empty.");
+                  else {
+                      System.out.println("Medications list");
+                      for (int i=0; i < medications.size(); i++) {
+                          System.out.println(i + 1  + ". " + medications.get(i).toString());
+                      }
+      
+                      System.out.println("Enter medication ID to update...." + "\n" + "medication code, name, weight, imageURL ");
+                  }
+              }
+              else if(option == 4) {
+                  System.out.println("Delete medications" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  List<Medication> medications = medicationService.getAllMedication();
+      
+                  if(medications.isEmpty()) System.out.println("The medications list is empty.");
+                  else {
+                      System.out.println("Medications list");
+                      for (int i=0; i < medications.size(); i++) {
+                          System.out.println(i + 1  + ". " + medications.get(i).toString());
+                      }
+      
+                      System.out.println("Enter medication ID to Delete...");
+                  }
+              }
+              else if(option == 5) {
+                  System.out.println("Get medications" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  System.out.println("Enter the medication ID that you want to retrieve.");
+              }
+          }
+      
+          private void DroneProcessor(int option, String info) {
+              availableOptions = 1;
+              if(option == 1) {
+      
+                  System.out.println("View drones" + "\n" + "1. Back");
+                  currentMode = Mode.DETAILS;
+                  List<Drone> drones = droneService.getAllDrones();
+      
+                  if(drones.isEmpty()) System.out.println("The drone list is empty.");
+                  else {
+                      System.out.println("Drones list");
+                      for (int i=0; i < drones.size(); i++) {
+                          System.out.println(i + 1  + ". " + drones.get(i).toString());
+                      }
+                  }
+              }
+              else if(option == 2) {
+                  System.out.println("Create drones" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  System.out.println("Enter new drone information...." + "\n" + "Serial Number, Max Weight, CurrentWeight, Battery Capacity, Drone State, Drone Model, GPS Coordinates");
+      
+              }
+              else if(option == 3) {
+                  System.out.println("Update drones" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  List<Drone> drones = droneService.getAllDrones();
+      
+                  if(drones.isEmpty()) System.out.println("The drones list is empty.");
+                  else {
+                      System.out.println("Drones list");
+                      for (int i=0; i < drones.size(); i++) {
+                          System.out.println(i + 1  + ". " + drones.get(i).toString());
+                      }
+      
+                      System.out.println("Enter drone ID to update...." + "\n" + "Serial Number, Max Weight, CurrentWeight, Battery Capacity, Drone State, Drone Model, GPS Coordinates ");
+                  }
+              }
+              else if(option == 4) {
+                  System.out.println("Delete drones" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  List<Drone> drones = droneService.getAllDrones();
+      
+                  if(drones.isEmpty()) System.out.println("The drones list is empty.");
+                  else {
+                      System.out.println("Drones list");
+                      for (int i=0; i < drones.size(); i++) {
+                          System.out.println(i + 1  + ". " + drones.get(i).toString());
+                      }
+      
+                      System.out.println("Enter drone ID to Delete....");
+                  }
+              }
+              else if(option == 5) {
+                  System.out.println("Get drones" + "\n" + "1. Back");
+                  currentMode = Mode.UPDATES;
+      
+                  System.out.println("Enter drone the ID that you want to retrieve.");
+              }
+          }
+      
+      
+          private boolean processOptionsB(String info) {
+      
+              if(info.length() > 0 && currentMode == Mode.DETAILS && availableOptions == 1 && !info.equals("1")) {
+                  System.out.println(INVALID_RESPONSE);
+                  return false;
+              }
+              else if(info.length() > 0 && currentMode == Mode.DETAILS && availableOptions == 2 && !info.equals("1") && !info.equals("2")) {
+                  System.out.println(INVALID_RESPONSE);
+                  return false;
+              }
+              else if(info.length() > 0 && currentMode == Mode.UPDATES && info.length() == 1 && availableOptions == 2 && !info.equals("1") && !info.equals("2")) {
+                  System.out.println(INVALID_RESPONSE);
+                  return false;
+              }
+              else if(info.length() > 0 && currentMode == Mode.UPDATES && info.length() == 1 && availableOptions == 1 && !info.equals("1")) {
+                  System.out.println(INVALID_RESPONSE);
+                  return false;
+              }
+      
+              return info.length() > 0;
+          }
+      }
+    learner_created: false
+  - name: src/resources/application.properties
+    visible: true
+    text: |-
+      management.endpoints.web.exposure.include=*
+      management.endpoint.shutdown.enabled=true
+      spring.jackson.serialization.INDENT_OUTPUT=true
+      spring.datasource.driverClassName=org.h2.Driver
+      spring.datasource.url=jdbc:h2:file:../droneAPI_db
+      spring.datasource.username=root
+      spring.datasource.password=1234
+      spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+      spring.jpa.hibernate.ddl-auto=create
+      spring.h2.console.enabled=true
+      spring.h2.console.settings.trace=false
+      spring.h2.console.settings.web-allow-others=false
+      spring.h2.console.path=/h2
+      server.error.include-message=always
+      # spring.jpa.show-sql=true
+      logging.level.DroneMed=DEBUG
+      spring.main.web-application-type=NONE
+      server.port=8080
+    learner_created: false
+  - name: test/DroneMedicationAPIApplicationTest.java
+    visible: false
+    text: |2-
+    
+      import DroneMed.DroneMedicationAPIApplication;
+      import org.hyperskill.hstest.dynamic.DynamicTest;
+      import org.hyperskill.hstest.stage.StageTest;
+      import org.hyperskill.hstest.testcase.CheckResult;
+      import org.hyperskill.hstest.testing.TestedProgram;
+    
+    
+      public class DroneMedicationAPIApplicationTest  extends StageTest {
+    
+    
+          public DroneMedicationAPIApplicationTest() {
+              super(DroneMedicationAPIApplication.class);
+          }
+    
+          private final String MAIN_MENU = "1. drones\n2. medications\n3. useraccounts\n4. exit";
+          //Drone Menus
+          private final String DRONE_MENU = "1. view drones\n2. create drone\n3. update drone\n4. delete drone\n5. get drone\n6. back";
+          private final String DRONE_VIEW_MENU = "View drones\n1. Back";
+          private final String DRONE_CREATE_MENU = "Create drones" + "\n" + "1. Back" + "\nEnter new drone information...." + "\n" + "Serial Number, Max Weight, CurrentWeight, Battery Capacity, Drone State, Drone Model, GPS Coordinates";
+          private final String DRONE_UPDATE_MENU = "Update drones" + "\n" + "1. Back";
+          private final String DRONE_DELETE_MENU = "Delete drones" + "\n" + "1. Back";
+          private final String GET_DRONE_MENU = "Get drones" + "\n" + "1. Back";
+    
+          //Drone Create,Read, Update, Delete information
+          private final String DRONE_INFO1 = "S001,100,0,1000,IDLE,LIGHTWEIGHT,4.815600°N 7.049800°E";
+          private final String DRONE_INFO1_UPDATE = "S001,100,0,700,IDLE,LIGHTWEIGHT,4.815600°N 7.049800°E";
+          private final String DRONE_INFO2_UPDATE_INVALID_ID = "S011,100,0,700,IDLE,LIGHTWEIGHT,4.815600°N 7.049800°E";
+          private final String DRONE_RESPONSE2_UPDATE = "Drone with serial number S011 not found.";
+          private final String DRONE_RESPONSE1 = "Drone with serial number S001 created successfully.";
+          private final String DRONE_RESPONSE1_UPDATE = "Drone with serial number S001 updated successfully.";
+          private final String DRONE_INFO2_INVALID =  "S002,200,0,15000,IDLE,MIDDLEWEIGHT";
+          private final String DRONE_INFO3 = "S003,300,0,18000,IDLE,CRUISERWEIGHT,4.815600°N 7.049800°E,200,500";
+          private final String DRONE_INFO4 = "S004,100,0,9000,IDLE,LIGHTWEIGHT, 4.815600°N 7.049800°E";
+          private final String DRONE_RESPONSE4 = "Drone with serial number S004 created successfully.";
+          private final String DRONE_INFO5 =  "S005,220,0,15000,IDLE,MIDDLEWEIGHT,4.815600°N 7.049800°E";
+          private final String DRONE_RESPONSE5 = "Drone with serial number S005 created successfully.";
+          private final String DRONE_INFO6 = "S006,330,0,18000,IDLE,CRUISERWEIGHT,4.815600°N 7.049800°E";
+          private final String DRONE_RESPONSE6 = "Drone with serial number S006 created successfully.";
+          private final String DELETE_DRONE_ID1 = "S006";
+          private final String DELETE_DRONE_RESPONSE1 = "Drone with serial number S006 deleted Successfully.";
+          private final String DELETE_DRONE_ID2 = "S005";
+          private final String DELETE_DRONE_RESPONSE2 = "Drone with serial number S005 deleted Successfully.";
+          private final String DELETE_DRONE_ID3_INVALID = "S016";
+          private final String DELETE_DRONE_RESPONSE3 = "Drone with serial number s016 not found.";
+          private final String GET_DRONE_ID1 = "S001";
+          private final String GET_DRONE_RESPONSE1 = "Drone serialnumber: S001 maxWeight: 100 currentWeight: 0 batteryCapacity: 700 State: IDLE Model: LIGHTWEIGHT Coordinate: 4.815600°N 7.049800°E";
+          private final String GET_DRONE_ID2 = "S004";
+          private final String GET_DRONE_RESPONSE2 = "Drone serialnumber: S004 maxWeight: 100 currentWeight: 0 batteryCapacity: 9000 State: IDLE Model: LIGHTWEIGHT Coordinate: 4.815600°N 7.049800°E";
+          private final String GET_DRONE_ID3_INVALID = "S020";
+          private final String GET_DRONE_RESPONSE3 = "Drone with serial number s020 not found.";
+    
+    
+          //Medication Menus
+          private final String MEDICATION_MENU = "1. view medications\n2. create medication\n3. update medication\n4. delete medication\n5. get medication\n6. back";
+          private final String MEDICATIONS_VIEW_MENU = "View medications\n1. Back";
+          private final String MEDICATION_CREATE_MENU = "Create medications" + "\n" + "1. Back" + "\nEnter new medication information...." + "\n" + "medication code, name, weight, imageURL";
+          private final String MEDICATION_UPDATE_MENU = "Update medications" + "\n" + "1. Back";
+          private final String MEDICATION_DELETE_MENU = "Delete medications" + "\n" + "1. Back";
+          private final String GET_MEDICATION_MENU = "Get medications" + "\n" + "1. Back";
+    
+          //Medication Create,Read, Update, Delete information
+          private final String MEDICATION_INFO1 = "XYGIY_01,Paracetamol,30,https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&h=180&c=7&r=0&o=5&pid=1.7";
+          private final String MEDICATION_INFO1_UPDATE = "XYGIY_01,Paracetamol,45,https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&h=180&c=7&r=0&o=5&pid=1.7";
+          private final String MEDICATION_UPDATE_INVALID_ID = "XYGIY_11,Paracetamol,30,https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&h=180&c=7&r=0&o=5&pid=1.7";
+          private final String MEDICATION_RESPONSE2_UPDATE = "Medication with code XYGIY_11 not found.";
+          private final String MEDICATION_RESPONSE1 = "Medication with code XYGIY_01 created successfully.";
+          private final String MEDICATION_RESPONSE1_UPDATE = "Medication with code XYGIY_01 updated successfully.";
+          private final String MEDICATION_INFO2_INVALID =  "ZZGIY_01,Paracetamol,30";
+          private final String MEDICATION_INFO3 = "0591_0405,60,https://www.lupin.com/US/wp-content/uploads/2021/06/lisinopril-tablets-usp-40mg.jpg";
+          private final String MEDICATION_INFO4 = "EM2N5P8,Montelukast,30,https://th.bing.com/th/id/OIP.UKCusqDb2OqO0Yc7YkUZYwHaHa?pid=ImgDet&rs=1";
+          private final String MEDICATION_RESPONSE4 = "Medication with code EM2N5P8 created successfully.";
+          private final String MEDICATION_INFO5 =  "0378_1800,levothyroxine,45,https://th.bing.com/th/id/R.7fbd35f211e5d8d1d26a917886324ee2?rik=0V5LafFrz83tFQ&pid=ImgRaw&r=0";
+          private final String MEDICATION_RESPONSE5 = "Medication with code 0378_1800 created successfully.";
+          private final String MEDICATION_INFO6 = "0093_5056,atorvastatin,55,https://th.bing.com/th/id/OIP.UweW6J3LBoimlOFacJE1cAHaFj?rs=1&pid=ImgDetMain";
+          private final String MEDICATION_RESPONSE6 = "Medication with code 0093_5056 created successfully.";
+          private final String DELETE_MEDICATION_ID1 = "0093_5056";
+          private final String DELETE_MEDICATION_RESPONSE1 = "Medication with code 0093_5056 deleted Successfully.";
+          private final String DELETE_MEDICATION_ID2 = "0378_1800";
+          private final String DELETE_MEDICATION_RESPONSE2 = "Medication with code 0378_1800 deleted Successfully.";
+          private final String DELETE_MEDICATION_ID3_INVALID = "0378_1816";
+          private final String DELETE_MEDICATION_RESPONSE3 = "Medication with code 0378_1816 not found.";
+          private final String GET_MEDICATION_ID1 = "XYGIY_01";
+          private final String GET_MEDICATION_RESPONSE1 = "Medication code: XYGIY_01 name: Paracetamol Weight: 45 imageURL: https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&h=180&c=7&r=0&o=5&pid=1.7";
+          private final String GET_MEDICATION_ID2 = "EM2N5P8";
+          private final String GET_MEDICATION_RESPONSE2 = "Medication code: EM2N5P8 name: Montelukast Weight: 30 imageURL: https://th.bing.com/th/id/OIP.UKCusqDb2OqO0Yc7YkUZYwHaHa?pid=ImgDet&rs=1";
+          private final String GET_MEDICATION_ID3_INVALID = "0591_0000";
+          private final String GET_MEDICATION_RESPONSE3 = "Medication with code 0591_0000 not found.";
+    
+    
+          //USer Menu
+          private final String USER_MENU = "1. View UserAccounts\n2. Create UserAccount\n3. Update UserAccount\n4. Delete UserAccount\n5. Get UserAccount\n6. Back";
+    
+          //Medication Menus
+          private final String USER_VIEW_MENU = "View UserAccounts\n1. Back";
+          private final String USER_CREATE_MENU = "Enter new UserAccount information...." + "\n" + "User accountType, name, phoneNumber, address, gps coordinates ";
+          private final String USER_UPDATE_MENU = "Update UserAccount" + "\n" + "1. Back";
+          private final String USER_DELETE_MENU = "Delete UserAccount" + "\n" + "1. Back";
+          private final String GET_USER_MENU = "Get UserAccount" + "\n" + "1. Back";
+    
+          //Medication Create,Read, Update, Delete information
+          private final String USER_INFO1 = "ADMIN,Emily Davis,4157890123,789 Cedar Street Sacramento California(CA) 95814,38.58157 -121.49440";
+          private final String USER_INFO1_UPDATE = "ADMIN,Emily Davis,4157890123,789 Cedar Street Oakland California(CA) 77714,38.58157 -121.49440";
+          private final String USER_UPDATE_INVALID_ID = "CUSTOMER,John Smith,5109876543,456 Pine Avenue Los Angeles California(CA) 90001,34.05223 -118.24368";
+          private final String USER_RESPONSE2_UPDATE = "User with phone number 5109876543 not found.";
+          private final String USER_RESPONSE1 = "User with phone number 4157890123 created successfully.";
+          private final String USER_RESPONSE1_UPDATE = "User with phone number 4157890123 updated successfully.";
+          private final String USER_INFO2_INVALID =  "CUSTOMER,John Smith,5109876543,456 Pine Avenue, Los Angeles, California(CA), 90001,34.05223 -118.24368";
+          private final String USER_INFO3 = "CUSTOMER,Olivia White,6504321876,202 Birch Street San Jose California(CA) 95110, 37.33821 -121.88633";
+          private final String USER_RESPONSE3 = "User with phone number 6504321876 created successfully.";
+          private final String USER_INFO4 = "GUEST,Michael Martinez,9163456789,101 Walnut Avenue San Diego California(CA) 92101,32.71574 -117.16109";
+          private final String USER_RESPONSE4 = "User with phone number 9163456789 created successfully.";
+          private final String USER_INFO5 =  "ADMIN,Daniel Taylor,3238765432, 303 Elm Avenue Oakland California(CA) 94601,37.80493 -122.27080";
+          private final String USER_RESPONSE5 = "User with phone number 3238765432 created successfully.";
+          private final String USER_INFO6 = "GUEST,Sophia Rodriguez,7149876543, 404 Maple Avenue Fresno California(CA) 93701,36.73929 -119.78429";
+          private final String USER_RESPONSE6 = "User with phone number 7149876543 created successfully.";
+          private final String DELETE_USER_ID1 = "7149876543";
+          private final String DELETE_USER_RESPONSE1 = "User with phone number 7149876543 deleted Successfully.";
+          private final String DELETE_USER_ID2 = "3238765432";
+          private final String DELETE_USER_RESPONSE2 = "User with phone number 3238765432 deleted Successfully.";
+          private final String DELETE_USER_ID3_INVALID = "3238765400";
+          private final String DELETE_USER_RESPONSE3 = "User with phone number 3238765400 not found.";
+          private final String GET_USER_ID1 = "4157890123";
+          private final String GET_USER_RESPONSE1 = "UserAccount name: Emily Davis phoneNumber: 4157890123 address: 789 Cedar Street Oakland California(CA) 77714 account: ADMIN";
+          private final String GET_USER_ID2 = "6504321876";
+          private final String GET_USER_RESPONSE2 = "UserAccount name: Olivia White phoneNumber: 6504321876 address: 202 Birch Street San Jose California(CA) 95110 account: CUSTOMER";
+          private final String GET_USER_ID3_INVALID = "6504321800";
+          private final String GET_USER_RESPONSE3 = "UserAccount with phone number 6504321800 not found.";
+    
+          private final String INVALID_RESPONSE = "Invalid response, Please enter a valid response.";
+          private final String INVALID_DRONE_PARAM = "The parameters you entered are not valid drone parameters, please enter a valid drone parameter.";
+          private final String INVALID_MED_PARAM = "The parameters you entered are not valid medication parameters, please enter a valid medication parameter.";
+          private final String INVALID_USER_PARAM = "The parameters you entered are not valid userAccounts parameters, please enter a valid userAccounts parameter.";
+    
+    
+    
+          @DynamicTest
+          CheckResult testDroneMenu() {
+              TestedProgram pr = new TestedProgram();
+              String output = pr.start();
+    
+              //Select drones menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().equals(DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user input \"1\" into your main menu, your program should display \"Drones Menu\" with the following output: \n" + DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("7");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"7\" into your program, this is an invalid input your response should contain the following output: \n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Select View Drones
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_VIEW_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by another 1\" into your program, should display \"View Drones\" menu which includes the following output: \n" + DRONE_VIEW_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("abcd");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"abcd\" into your program, this is an invalid input your program should respond should contain the following output: \n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to drones menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by another 1 and then 1\" into your program, it should display \"Drones Menu\" with the following output: \n" + DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("andfnf");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"andfnf\" into your program, this is an invalid input the response should contain the following output:\n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create Drone menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed and then 2\" into your program, the response should contain the following output: \n" + DRONE_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create drone with valid data
+              output = pr.execute(DRONE_INFO1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in drone create menu and enters a valid information example: \n" + DRONE_INFO1 + "\ninto your program, the response should contain the following output: \n" + DRONE_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more Drone menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating a drone to create more into your program, the response should contain the following output: \n" + DRONE_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create drone with valid data
+              output = pr.execute(DRONE_INFO4);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_RESPONSE4.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a drone create menu and enters a valid information example: \n" + DRONE_INFO4 + "\ninto your program, the response should contain the following output: \n" + DRONE_RESPONSE4 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more Drone menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating a drone to create more into your program, the response should contain the following output: \n" + DRONE_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create drone with valid data
+              output = pr.execute(DRONE_INFO5);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_RESPONSE5.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a drone create menu and enters a valid information example: \n" + DRONE_INFO5 + "\ninto your program, the response should contain the following output: \n" + DRONE_RESPONSE5 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more Drone menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating drone to create more into your program, the response should contain the following output: \n" + DRONE_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create drone with valid data
+              output = pr.execute(DRONE_INFO6);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_RESPONSE6.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a drone create menu and enters a valid information example: \n" + DRONE_INFO6 + "\ninto your program, the response should contain the following output: \n" + DRONE_RESPONSE5 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more Drone menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating a drone to create more into your program, the response should contain the following output: \n" + DRONE_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+    
+              //create drone with invalid data incomplete data
+              output = pr.execute(DRONE_INFO2_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_DRONE_PARAM.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a drone create menu enters a invalid drone information example: " + DRONE_INFO2_INVALID + " into your program, the response should contain the following output: \n" + INVALID_DRONE_PARAM + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create drone with invalid data incomplete data
+              output = pr.execute(DRONE_INFO3);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_DRONE_PARAM.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in drone create menu enters a invalid drone information example: " + DRONE_INFO3 + " into your program, the response should contain the following output: \n" + INVALID_DRONE_PARAM + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to drones menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"Drones Menu\" with the following output: \n" + DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update Drone menu
+              output = pr.execute("3");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 3\" into your program, response should contain \"Drone update menu\" with the following output starting with: \n" + DRONE_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update drone with valid data
+              output = pr.execute(DRONE_INFO1_UPDATE);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_RESPONSE1_UPDATE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a drone update menu and enters a valid information example: \n" + DRONE_INFO1_UPDATE + "\ninto your program, the response should contain the following output: \n" + DRONE_RESPONSE1_UPDATE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update more drones menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to update more drones, the response should contain the following output: \n" + DRONE_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update drone with invalid id
+              output = pr.execute(DRONE_INFO2_UPDATE_INVALID_ID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_RESPONSE2_UPDATE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a drone update menu and enters a invalid drone id information example: \n" + DRONE_INFO2_UPDATE_INVALID_ID + "\ninto your program, the response should contain the following output: \n" + DRONE_RESPONSE2_UPDATE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update more drones menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to update more drones, the response should contain the following output: \n" + DRONE_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update drone with invalid data incomplete data
+              output = pr.execute(DRONE_INFO2_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_DRONE_PARAM.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a drone update menu enters a invalid drone information example: " + DRONE_INFO2_INVALID + " into your program, the response should contain the following output: \n" + INVALID_DRONE_PARAM + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to drones menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"Drones Menu\" with the following output: \n" + DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete Drone menu
+              output = pr.execute("4");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 4\" into your program, response should contain \"Delete drone menu\" with the following output starting with: \n" + DRONE_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete drone with valid id
+              output = pr.execute(DELETE_DRONE_ID1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_DRONE_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in drone delete menu and enters a valid drone id information example: \n" + DELETE_DRONE_ID1 + "\ninto your program, the response should contain the following output: \n" + DELETE_DRONE_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete more drones menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more drones, the response should contain the following output: \n" + DRONE_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete drone with valid id
+              output = pr.execute(DELETE_DRONE_ID2);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_DRONE_RESPONSE2.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user in delete drone menu and enters a valid drone id information example: \n" + DELETE_DRONE_ID2 + "\ninto your program, the response should contain the following output: \n" + DELETE_DRONE_RESPONSE2 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete more drones menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more drones, the response should contain the following output: \n" + DRONE_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete drone with valid id
+              output = pr.execute(DELETE_DRONE_ID3_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_DRONE_RESPONSE3.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in drone delete menu and enters a invalid drone ID information example: \n" + DELETE_DRONE_ID3_INVALID + "\ninto your program, the response should contain the following output: \n" + DELETE_DRONE_RESPONSE3 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to drones menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"Drones Menu\" with the following output: \n" + DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get Drone menu
+              output = pr.execute("5");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 5\" into your program, response should contain \"Get drone menu\" with the following output starting with: \n" + GET_DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get drone with valid id
+              output = pr.execute(GET_DRONE_ID1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_DRONE_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a get drone menu and enters a valid drone id information example: \n" + GET_DRONE_ID1 + "\ninto your program, the response should contain the following output: \n" + GET_DRONE_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get more drones menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more drones, the response should contain the following output: \n" + GET_DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get drone with valid id
+              output = pr.execute(GET_DRONE_ID2);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_DRONE_RESPONSE2.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in get drone menu and enters a valid drone id information example: \n" + GET_DRONE_ID2 + "\ninto your program, the response should contain the following output: \n" + GET_DRONE_RESPONSE2 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get more drones menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more drones, the response should contain the following output: \n" + GET_DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get drone with valid id
+              output = pr.execute(GET_DRONE_ID3_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_DRONE_RESPONSE3.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in get a drone menu and enters a valid drone id information example: \n" + GET_DRONE_ID3_INVALID + "\ninto your program, the response should contain the following output: \n" + GET_DRONE_RESPONSE3 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to drones menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DRONE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"Drones Menu\" with the following output: \n" + DRONE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to main menu
+              output = pr.execute("6");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MAIN_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"6 \" into your program, it should display \"Main Menu\" with the following output: \n" + MAIN_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+    
+              return CheckResult.correct();
+          }
+    
+          @DynamicTest
+          CheckResult testMedicationMenu() {
+              TestedProgram pr = new TestedProgram();
+              String output = pr.start();
+    
+              //Select medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().equals(MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user input \"2\" into your main menu, your program should it display \"Medication Menu\" with the following output: \n" + MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("7");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"7\" into your program, this is an invalid input your response should contain the following output: \n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Select View Medication
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATIONS_VIEW_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2 followed by another 1\" into your program, it should display \"View Medications\" menu which includes the following output: \n" + MEDICATIONS_VIEW_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("abcd");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"abcd\" into your program, this is an invalid input your program should response should contain the following output: \n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to medication menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2 followed by another 1 and then 1\" into your program, it should display \"Medication Menu\" with the following output: \n" + MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("andfnf");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"andfnf\" into your program, this is an invalid input your response should contain the following output:\n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create Medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2 followed by another 2\" into your program, the response should contain the following output: \n" + MEDICATION_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create medication with valid data
+              output = pr.execute(MEDICATION_INFO1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication create menu and enters a valid information example: \n" + MEDICATION_INFO1 + "\ninto your program, the response should contain the following output: \n" + MEDICATION_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more Medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating medication to create more into your program, the response should contain the following output: \n" + MEDICATION_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create medication with valid data
+              output = pr.execute(MEDICATION_INFO4);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_RESPONSE4.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication create menu and enters a valid information example: \n" + MEDICATION_INFO4 + "\ninto your program, the response should contain the following output: \n" + MEDICATION_RESPONSE4 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more Medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating medication to create more into your program, the response should contain the following output: \n" + MEDICATION_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create medication with valid data
+              output = pr.execute(MEDICATION_INFO5);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_RESPONSE5.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication create menu and enters a valid information example: \n" + MEDICATION_INFO5 + "\ninto your program, the response should contain the following output: \n" + MEDICATION_RESPONSE5 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating medication to create more into your program, the response should contain the following output: \n" + MEDICATION_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create medication with valid data
+              output = pr.execute(MEDICATION_INFO6);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_RESPONSE6.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication create menu and enters a valid information example: \n" + MEDICATION_INFO6 + "\ninto your program, the response should contain the following output: \n" + MEDICATION_RESPONSE6 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating medication to create more into your program,the response should contain the following output: \n" + MEDICATION_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+    
+              //create medication with invalid data incomplete data
+              output = pr.execute(MEDICATION_INFO2_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_MED_PARAM.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication create menu enters a invalid medication information example: " + MEDICATION_INFO2_INVALID + " into your program, the response should contain the following output: \n" + INVALID_MED_PARAM + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create medication with invalid data incomplete data
+              output = pr.execute(MEDICATION_INFO3);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_MED_PARAM.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication create menu enters a invalid medication information example: " + MEDICATION_INFO3 + " into your program, response should contain the following output: \n" + INVALID_MED_PARAM + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to medication menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"Medication Menu\" with the following output: \n" + MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update medication menu
+              output = pr.execute("3");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 3\" into your program, the response should contain \"Medication update menu\" with the following output starting with: \n" + MEDICATION_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update medication with valid data
+              output = pr.execute(MEDICATION_INFO1_UPDATE);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_RESPONSE1_UPDATE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication update menu and enters a valid information example: \n" + MEDICATION_INFO1_UPDATE + "\ninto your program, the response should contain the following output: \n" + MEDICATION_RESPONSE1_UPDATE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update more medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to update more medication, the response should contain the following output: \n" + MEDICATION_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update medication with invalid id
+              output = pr.execute(MEDICATION_UPDATE_INVALID_ID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_RESPONSE2_UPDATE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication update menu and enters a invalid medication id information example: \n" + MEDICATION_UPDATE_INVALID_ID + "\ninto your program, the response should contain the following output: \n" + MEDICATION_RESPONSE2_UPDATE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update more medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to update more medication, the response should contain the following output: \n" + MEDICATION_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update medication with invalid data incomplete data
+              output = pr.execute(MEDICATION_INFO2_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_MED_PARAM.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in medication update menu enters a invalid medication information example: " + MEDICATION_INFO2_INVALID + " into your program, the response should contain the following output: \n" + INVALID_MED_PARAM + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to medication menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"Medication Menu\" with the following output: \n" + MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete medication menu
+              output = pr.execute("4");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 4\" into your program, the response should contain \"Delete medication menu\" with the following output starting with: \n" + MEDICATION_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete medication with valid id
+              output = pr.execute(DELETE_MEDICATION_ID1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_MEDICATION_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication delete menu and enters a valid medication id information example: \n" + DELETE_MEDICATION_ID1 + "\ninto your program, the response should contain the following output: \n" + DELETE_MEDICATION_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete more medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more medication, the response should contain the following output: \n" + MEDICATION_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete medication with valid id
+              output = pr.execute(DELETE_MEDICATION_ID2);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_MEDICATION_RESPONSE2.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user in a medication delete menu and enters a valid medication id information example: \n" + DELETE_MEDICATION_ID2 + "\ninto your program, the response should contain the following output: \n" + DELETE_DRONE_RESPONSE2 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete more medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more medications, response should contain the following output: \n" + DRONE_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete medication with valid id
+              output = pr.execute(DELETE_MEDICATION_ID3_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_MEDICATION_RESPONSE3.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a medication delete menu and enters a invalid medication id information example: \n" + DELETE_MEDICATION_ID3_INVALID + "\ninto your program, the response should contain the following output: \n" + DELETE_MEDICATION_RESPONSE3 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to medications menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"Medication Menu\" with the following output: \n" + MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get medication menu
+              output = pr.execute("5");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 5\" into your program, response should contain \"Get medication menu\" with the following output starting with: \n" + GET_MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get medication with valid id
+              output = pr.execute(GET_MEDICATION_ID1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_MEDICATION_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a get medication menu and enters a valid medication id information example: \n" + GET_MEDICATION_ID1 + "\ninto your program, the response should contain the following output: \n" + GET_MEDICATION_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get more medications menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more medication, response should contain the following output: \n" + GET_MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get medication with valid id
+              output = pr.execute(GET_MEDICATION_ID2);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_MEDICATION_RESPONSE2.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in get medication menu and enters a valid medication id information example: \n" + GET_MEDICATION_ID2 + "\ninto your program, the response should contain the following output: \n" + GET_MEDICATION_RESPONSE2 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get more medication menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more medications, the response should contain the following output: \n" + GET_MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get medication with valid id
+              output = pr.execute(GET_MEDICATION_ID3_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_MEDICATION_RESPONSE3.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in get medication menu and enters a invalid medication id information example: \n" + GET_MEDICATION_ID3_INVALID + "\ninto your program,the response should contain the following output: \n" + GET_MEDICATION_RESPONSE3 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to medication menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MEDICATION_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"Medication Menu\" with the following output: \n" + MEDICATION_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to main menu
+              output = pr.execute("6");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MAIN_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"6 \" into your program, it should display \"Main Menu\" with the following output: \n" + MAIN_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+    
+              return CheckResult.correct();
+          }
+    
+          @DynamicTest
+          CheckResult testUserMenu() {
+              TestedProgram pr = new TestedProgram();
+              String output = pr.start();
+    
+              //Select User menu
+              output = pr.execute("3");
+              if (!output.isEmpty() && !output.toLowerCase().trim().equals(USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user input \"3\" into your main menu, your program should it display \"User Menu\" with the following output: \n" + USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("15");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"15\" into your program, this is an invalid input your response should contain the following output: \n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Select View User
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_VIEW_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"3 followed by another 1\" into your program, it should display \"View UserAccounts\" menu which includes the following output: \n" + USER_VIEW_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("abcdkjasdffasfasjkn");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"abcdkjasdffasfasjkn\" into your program, this is an invalid input your program should response should contain the following output: \n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to user menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"3 followed by another 1 and then 1\" into your program, it should display \"UserAccounts Menu\" with the following output: \n" + USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Invalid response
+              output = pr.execute("analsgaslkdfnf");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_RESPONSE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"analsgaslkdfnf\" into your program, this is an invalid input your response should contain the following output:\n" + INVALID_RESPONSE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create User menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"3 followed by another 2\" into your program, the response should contain the following output: \n" + USER_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create user with valid data
+              output = pr.execute(USER_INFO1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts create menu and enters a valid information example: \n" + USER_INFO1 + "\ninto your program, the response should contain the following output: \n" + USER_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more User menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating UserAccounts to create more into your program, response should contain the following output: \n" + USER_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create user with valid data
+              output = pr.execute(USER_INFO4);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_RESPONSE4.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts create menu and enters a valid information example: \n" + USER_INFO4 + "\ninto your program, the response should contain the following output: \n" + USER_RESPONSE4 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating UserAccounts to create more into your program, response should contain the following output: \n" + USER_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create user with valid data
+              output = pr.execute(USER_INFO5);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_RESPONSE5.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts create menu and enters a valid information example: \n" + USER_INFO5 + "\ninto your program, the response should contain the following output: \n" + USER_RESPONSE5 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating a UserAccounts to create more into your program, the response should contain the following output: \n" + USER_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create user with valid data
+              output = pr.execute(USER_INFO6);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_RESPONSE6.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts create menu and enters a valid information example: \n" + USER_INFO6 + "\ninto your program, the response should contain the following output: \n" + USER_RESPONSE6 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Create more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_CREATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" after creating UserAccounts to create more into your program,the response should contain the following output: \n" + USER_CREATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+    
+              //create user with invalid data incomplete data
+              output = pr.execute(USER_INFO2_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_USER_PARAM.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts create menu enters a invalid UserAccounts information example: " + USER_INFO2_INVALID + " into your program, the response should contain the following output: \n" + INVALID_USER_PARAM + "\n\nYour output is \n\n" + output);
+              }
+    
+              //create user with valid data complete data
+              output = pr.execute(USER_INFO3);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_RESPONSE3.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts create menu enters a valid UserAccounts information example: " + USER_INFO3 + " into your program, the response should contain the following output: \n" + USER_RESPONSE3 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to user menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"UserAccounts Menu\" with the following output: \n" + USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update user menu
+              output = pr.execute("3");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 3\" into your program, the response should contain \"UserAccounts update menu\" with the following output starting with: \n" + MEDICATION_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update user with valid data
+              output = pr.execute(USER_INFO1_UPDATE);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_RESPONSE1_UPDATE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in UserAccounts update menu and enters a valid information example: \n" + USER_INFO1_UPDATE + "\ninto your program, the response should contain the following output: \n" + USER_RESPONSE1_UPDATE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to update more UserAccounts, the response should contain the following output: \n" + USER_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update user with invalid id
+              output = pr.execute(USER_UPDATE_INVALID_ID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_RESPONSE2_UPDATE.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts update menu and enters a invalid drone id information example: \n" + USER_UPDATE_INVALID_ID + "\ninto your program, the response should contain the following output: \n" + USER_RESPONSE2_UPDATE + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Update more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_UPDATE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to update more UserAccounts, response should contain the following output: \n" + USER_UPDATE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //update user with invalid data incomplete data
+              output = pr.execute(USER_INFO2_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(INVALID_USER_PARAM.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts update menu and enters an invalid UserAccounts information example: " + USER_INFO2_INVALID + " into your program, the response should contain the following output: \n" + INVALID_USER_PARAM + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to user menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"UserAccounts Menu\" with the following output: \n" + USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete user menu
+              output = pr.execute("4");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 4\" into your program, response should contain \"Delete UserAccounts menu\" with the following output starting with: \n" + USER_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete user with valid id
+              output = pr.execute(DELETE_USER_ID1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_USER_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in UserAccounts delete menu and enters a valid UserAccounts id information example: \n" + DELETE_USER_ID1 + "\ninto your program, the response should contain the following output: \n" + DELETE_USER_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more UserAccounts, the response should contain the following output: \n" + USER_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete user with valid id
+              output = pr.execute(DELETE_USER_ID2);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_USER_RESPONSE2.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user in a delete UserAccounts menu and enters a valid UserAccounts id information example: \n" + DELETE_USER_ID2 + "\ninto your program, the response should contain the following output: \n" + DELETE_USER_RESPONSE2 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_DELETE_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more UserAccounts, the response should contain the following output: \n" + USER_DELETE_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Delete user with valid id
+              output = pr.execute(DELETE_USER_ID3_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(DELETE_USER_RESPONSE3.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a UserAccounts delete menu and enters a invalid UserAccounts id information example: \n" + DELETE_USER_ID3_INVALID + "\ninto your program, the response should contain the following output: \n" + DELETE_USER_RESPONSE3 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to user menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"UserAccounts Menu\" with the following output: \n" + USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get user menu
+              output = pr.execute("5");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 followed by 5\" into your program, the response should contain \"Get UserAccounts menu\" with the following output starting with: \n" + GET_USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get user with valid id
+              output = pr.execute(GET_USER_ID1);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_USER_RESPONSE1.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in a get UserAccounts menu and enters a valid UserAccounts id information example: \n" + GET_USER_ID1 + "\ninto your program, the response should contain the following output: \n" + GET_USER_RESPONSE1 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more UserAccounts, the response should contain the following output: \n" + GET_USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get user with valid id
+              output = pr.execute(GET_USER_ID2);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_USER_RESPONSE2.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in get UserAccounts menu and enters a valid UserAccounts id information example: \n" + GET_USER_ID2 + "\ninto your program, the response should contain the following output: \n" + GET_USER_RESPONSE2 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get more user menu
+              output = pr.execute("2");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"2\" into your program to delete more UserAccounts, the response should contain the following output: \n" + GET_USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Get user with valid id
+              output = pr.execute(GET_USER_ID3_INVALID);
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(GET_USER_RESPONSE3.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user is in get UserAccounts menu and enters a invalid UserAccounts id information example: \n" + GET_USER_ID3_INVALID + "\ninto your program, the response should contain the following output: \n" + GET_USER_RESPONSE3 + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to user menu
+              output = pr.execute("1");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(USER_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"1 \" into your program, it should display \"UserAccounts Menu\" with the following output: \n" + USER_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+              //Go back to main menu
+              output = pr.execute("6");
+              if (!output.isEmpty() && !output.toLowerCase().trim().contains(MAIN_MENU.toLowerCase().trim())) {
+                  return CheckResult.wrong("When the user inputs \"6 \" into your program, it should display \"Main Menu\" with the following output: \n" + MAIN_MENU + "\n\nYour output is \n\n" + output);
+              }
+    
+    
+              return CheckResult.correct();
+          }
+    
+    
+      }
+    learner_created: false
+  - name: build.gradle
+    visible: true
+    text: |
+      buildscript {
+          apply plugin: 'hyperskill'
+      
+          repositories {
+              mavenCentral()
+          }
+          dependencies {
+              classpath "org.springframework.boot:spring-boot-gradle-plugin:$hs.spring.bootVersion"
+              classpath "io.spring.gradle:dependency-management-plugin:$hs.spring.dependencyManagementVersion"
+          }
+      }
+      
+      apply plugin: 'java'
+      apply plugin: 'org.springframework.boot'
+      apply plugin: 'io.spring.dependency-management'
+      
+      repositories {
+          mavenCentral()
+      }
+      
+      sourceSets.main.resources.srcDirs = ["src/resources"]
+      
+      dependencies {
+          implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+          implementation 'org.springframework.boot:spring-boot-starter'
+          implementation 'org.springframework.boot:spring-boot-starter-actuator'
+          implementation 'org.springframework.boot:spring-boot-starter-web'
+          implementation 'com.h2database:h2'
+          implementation group: 'org.hibernate', name: 'hibernate-validator', version: '6.1.0.Final'
+          compileOnly 'org.projectlombok:lombok:1.18.30'
+          annotationProcessor 'org.projectlombok:lombok:1.18.30'
+      }
+      
+      test {
+          jvmArgs '--add-opens', 'java.base/java.lang=ALL-UNNAMED'
+      }
+    learner_created: false
+  - name: src/DroneMed/models/Drone.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/models/DroneState.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/models/DroneModel.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/models/Medication.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/models/UserAccount.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/models/Account.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/repositories/DroneRepository.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/repositories/UserAccountRepository.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/repositories/MedicationRepository.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/services/DroneService.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/services/MedicationService.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/services/UserService.java
+    visible: true
+    learner_created: true
+feedback_link: https://hyperskill.org/projects/450/stages/2608/implement#comment
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Tue, 09 Apr 2024 21:03:05 UTC"
+record: -1

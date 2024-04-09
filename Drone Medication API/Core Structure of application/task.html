@@ -1,0 +1,494 @@
+<div class="step-text">
+<p><strong>Description</strong></p>
+<p>Create a comprehensive drone delivery system managed through a robust REST API. This system will enable customers to conveniently order medications online, and drones will autonomously deliver these medications to the customer's specified GPS location. Additionally, the drones will be tracked and monitored, allowing for real-time monitoring of their movement and ensuring the safe and efficient delivery of medications. <br/>
+<br/>
+Importantly, our emphasis will solely be on building our models and repositories. This streamlines the project, allowing us to concentrate on the core functionality of facilitating communication between various components of the system through standardized Spring boot CLI. By doing so, we aim to optimize efficiency and flexibility, making it easier to integrate the drone delivery system with other applications or platforms in the future.</p>
+<p>To run the tests, the <code class="language-yaml">application.properties</code> file should contain the following line: <code class="language-yaml">spring.datasource.url=jdbc:h2:file:../droneAPI_db</code></p>
+<p>Since 2.3.0, Spring Boot hides error messages by default, to pass the tests, you need to add the following line: <code class="language-yaml">server.error.include-message=always</code> to the <code class="language-yaml">application.properties file</code>.</p>
+<h5 id="objectives">Objectives</h5>
+<p>In this stage, our goal is to establish the fundamental features of the web service. This involves setting up the core structure of the Spring Boot project and generating entity classes to store essential data related to Drone, Medication, and UserAccount. </p>
+<p>We'll leverage Spring Data JPA for seamless data management. For each data model (Drone, Medication, and UserAccount), we'll establish a dedicated repository using Spring Data JPA to ensure efficient interaction with your preferred database.</p>
+<p>To streamline communication with the database, we'll define Spring Data JPA interfaces. Finally, we'll build a Spring Boot command-line tool to interact with these repositories, verifying the core functionality of our application.</p>
+<p><strong>Example 1. </strong></p>
+<p>When managing drone-related data, it's essential to include information that aids in identifying the drone model and its current state. For instance, you can implement a "<strong>Drone" </strong>model field using an enumerated (enum) data type with values like <code class="language-yaml">(LIGHTWEIGHT, MIDDLEWEIGHT, CRUISERWEIGHT, and HEAVYWEIGHT)</code>. This categorization helps distinguish between different drone types based on their design and capabilities. For instance, a drone with a maximum weight of less than or equal to <strong>100</strong> should classify as <code class="language-yaml">LIGHTWEIGHT</code>, while a maximum weight above <strong>100</strong> but less than or equal to <strong>200</strong> should classify as <code class="language-yaml">MIDDLEWEIGHT</code>, Similarly, a drone with a maximum weight above <strong>200</strong> but less than or equals <strong>350</strong> should classify as <code class="language-yaml">CRUISERWEIGHT</code> and one with maximum weight above <strong>350</strong> but not exceeding <strong>500</strong> should classify as <code class="language-yaml">HEAVYWEIGHT.</code></p>
+<p>Additionally, incorporating a "<strong>State</strong>" field with Enum values such as <code class="language-yaml">(IDLE, DELIVERING, DELIVERED, RETURNING)</code> provides insight into the current operational status of the drone. This categorization assists in tracking and understanding the drone's activities, whether it's actively delivering, has completed a delivery, is in a standby state, or is in the process of returning to its base.</p>
+<p>Example drone data.</p>
+<pre><code class="language-yaml">{
+
+"serialNumber": "S001",
+
+"maxWeight": 100,
+
+"currentWeight": 0,
+
+"batteryCapacity": 10000,
+
+"currentState": "IDLE",
+
+"model": "LIGHTWEIGHT",
+
+"currentCoordinate": "4.815600°N 7.049800°E"
+
+}</code></pre>
+<p>In designing a medication model ensuring that each medication in your system has an associated weight value is crucial for efficient drone loading. This weight value serves as a key parameter, providing essential information about the mass of each medication. When loading medications onto a drone, understanding their individual weights becomes vital for ensuring a well-balanced and optimized loading process that aligns with the operational capabilities of the drones in use.</p>
+<p>Example medication data</p>
+<p>The provided medication sample data includes the <strong>weight</strong> of each medication. This information is critical for drone loading, as it ensures we never exceed the drone's <strong>maximum weight capacity</strong>. By considering the weight of each medication, we guarantee safe and efficient drone operations.</p>
+<pre><code class="language-yaml">{
+
+   "code":"XYGIY_02",
+
+    "name":"Paracetamol",
+
+    "weight":"30",
+
+    "imageURL":"https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&amp;h=180&amp;c=7&amp;r=0&amp;o=5&amp;pid=1.7"
+
+}</code></pre>
+<p>Example user account data.</p>
+<p>Since each user is assigned a unique phone number, this phone number will be used to identify each user and guide the drone in delivering medication to the user. When managing sample user account data, it is recommended to include an "account" field with an enumerated data type. This field acts as a mechanism for categorizing users, and defining their roles. For example, a user's account field could be set to "ADMIN," "CUSTOMER," or "GUEST" which will determine their access level to certain functions within the system.</p>
+<pre><code class="language-yaml">{
+
+"account": "ADMIN",
+
+"name": "Emily Davis",
+
+"phone": "4157890123",
+
+"address":
+
+"789 Cedar Street, Sacramento, California(CA), 95814",
+
+"coordinates": "38.58157°N, -121.49440°E"
+
+}</code></pre>
+<h5 id="spring-boot-command-line-tool-to-interact-with-repositories">Spring Boot command-line tool to interact with repositories.</h5>
+<p>We'll utilize a Spring Boot command-line tool to interact with our program and execute CRUD operations. Upon initiating our program, we'll encounter a screen like the one below:</p>
+<p><strong>Main menu</strong> </p>
+<pre><code class="language-yaml">Enter instruction for drone medication API...
+1. Drones
+2. Medications
+3. UserAccounts
+4. Exit</code></pre>
+<p>If the user <strong>inputs 1</strong> the program will load information about the drone's operations like below:</p>
+<pre><code class="language-yaml">1. View Drones
+2. Create Drone
+3. Update Drone
+4. Delete Drone
+5. Get Drone
+6. Back</code></pre>
+<p>if the user <strong>inputs 1</strong> the program will load information about drones saved on the database like below:</p>
+<pre><code class="language-yaml">View drones
+1. Back
+Drones list
+1. Drone serialnumber: S002 maxWeight: 250 currentWeight: 0 batteryCapacity: 12000 State: IDLE Model: MIDDLEWEIGHT Coordinate: 4.815600°N 7.049800°E
+2. Drone serialnumber: S003 maxWeight: 350 currentWeight: 0 batteryCapacity: 15000 State: IDLE Model: CRUISERWEIGHT Coordinate: 4.815600°N 7.049800°E
+3. Drone serialnumber: S004 maxWeight: 400 currentWeight: 0 batteryCapacity: 20000 State: IDLE Model: HEAVYWEIGHT Coordinate: 4.815600°N 7.049800°E
+4. Drone serialnumber: S001 maxWeight: 100 currentWeight: 0 batteryCapacity: 10000 State: IDLE Model: LIGHTWEIGHT Coordinate: 4.815600N 7.049800E</code></pre>
+<p>if the database is empty will display the information below:</p>
+<pre><code class="language-yaml">View drones
+1. Back
+The drone list is empty.</code></pre>
+<p>Any other input from the user that is not 1 in the menu above is not valid input and the program should display below:</p>
+<pre><code class="language-yaml">Invalid response, Please enter a valid response</code></pre>
+<p>If the user <strong>inputs 1</strong> which is the only valid input allowed from the menu above, the program will load the previous drone menu like the below:</p>
+<pre><code class="language-yaml">1. View Drones
+2. Create Drone
+3. Update Drone
+4. Delete Drone
+5. Get Drone
+6. Back</code></pre>
+<p>if the user <strong>inputs 2</strong> the program will load information about creating drones on the database like below:</p>
+<pre><code class="language-yaml">Create drones
+1. Back
+Enter new drone information....
+Serial Number, Max Weight, CurrentWeight, Battery Capacity, Drone State, Drone Model, GPS Coordinates</code></pre>
+<p>The user can <strong>input 1</strong> to go to the previous menu or input new drone information separated by "," like below:</p>
+<pre><code class="language-yaml">S005, 100, 0, 10000, IDLE, LIGHTWEIGHT, 48.8159_7.0498</code></pre>
+<p>The program should output below to indicate that the drone was created successfully:</p>
+<pre><code class="language-yaml">Create Drones
+1. Back
+2. Create more Drones
+Drone with serial number S001 created successfully.</code></pre>
+<p>If the user enters an invalid drone parameter for creating a drone the program should display the information below:</p>
+<pre><code class="language-yaml">The parameters you entered are not valid drone parameters, please enter a valid drone parameter.</code></pre>
+<p>The allowed input from the menu above is <strong>1</strong> to return to previous the menu or <strong>2</strong> to create more drones any other input is invalid. Users can <strong>input 1</strong> to go to the previous menu or <strong>input 2</strong> to create more drones like below:</p>
+<pre><code class="language-yaml">Create drones
+1. Back
+Enter new drone information....
+Serial Number, Max Weight, CurrentWeight, Battery Capacity, Drone State, Drone Model, GPS Coordinates</code></pre>
+<p>Users can <strong>input 1</strong> to go back to the preview menu like below:</p>
+<pre><code class="language-yaml">
+1. View Drones
+2. Create Drone
+3. Update Drone
+4. Delete Drone
+5. Get Drone
+6. Back</code></pre>
+<p>If the user <strong>inputs 3</strong> to update a drone with an existing drone ID, the system will then display a list of all available drones. Users can <strong>input 1</strong> to return to the previous menu or simply select the desired drone from the list to proceed with the update like below:</p>
+<pre><code class="language-yaml">Update drones
+1. Back
+Drones list
+1. Drone serialnumber: S002 maxWeight: 250 currentWeight: 0 batteryCapacity: 12000 State: IDLE Model: MIDDLEWEIGHT Coordinate: 4.815600°N 7.049800°E
+2. Drone serialnumber: S003 maxWeight: 350 currentWeight: 0 batteryCapacity: 15000 State: IDLE Model: CRUISERWEIGHT Coordinate: 4.815600°N 7.049800°E
+3. Drone serialnumber: S004 maxWeight: 400 currentWeight: 0 batteryCapacity: 20000 State: IDLE Model: HEAVYWEIGHT Coordinate: 4.815600°N 7.049800°E
+4. Drone serialnumber: S001 maxWeight: 100 currentWeight: 0 batteryCapacity: 10000 State: IDLE Model: LIGHTWEIGHT Coordinate: 4.815600N 7.049800E
+Enter drone ID to update....
+Serial Number, Max Weight, CurrentWeight, Battery Capacity, Drone State, Drone Model, GPS Coordinates</code></pre>
+<p>The user inputs valid drone information for updates like the below:</p>
+<pre><code class="language-yaml">S002, 250, 150, 12000, IDLE, MIDDLEWEIGHT, 4.815600°N 7.049800°E</code></pre>
+<p>The program will respond with information showing the status of the operation, and then the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to update more drones any other input invalid from the menu below, for successful operation information like below:</p>
+<pre><code class="language-yaml">Updated Drone
+1. Back
+2. Update more Drones
+Drone with serial number S001 updated successfully.</code></pre>
+<p>For unsuccessful operations, for example, when the ID entered does not exist information like the below:</p>
+<pre><code class="language-yaml">Updated Drone
+1. Back
+2. Update more Drones
+Drone with serial number S011 not found.</code></pre>
+<p> When a user enters an invalid drone parameter for update the program should display information like the below:</p>
+<pre><code class="language-yaml">The parameters you entered is not a valid drone parameter, Please enter a valid drone parameter.</code></pre>
+<p>If the user <strong>inputs 1</strong> to return to the previous menu like below:</p>
+<pre><code class="language-yaml">1. View Drones
+2. Create Drone
+3. Update Drone
+4. Delete Drone
+5. Get Drone
+6. Back</code></pre>
+<p>If the user <strong>inputs 4</strong> to delete a drone with an existing drone ID, the system will then display a list of all available drones. Simply select the desired drone ID from the list to proceed with the delete like below:</p>
+<pre><code class="language-yaml">Delete drones
+1. Back
+Drones list
+1. Drone serialnumber: S002 maxWeight: 250 currentWeight: 150 batteryCapacity: 12000 State: IDLE Model: MIDDLEWEIGHT Coordinate: 4.815600°N7.049800°E
+2. Drone serialnumber: S003 maxWeight: 350 currentWeight: 0 batteryCapacity: 15000 State: IDLE Model: CRUISERWEIGHT Coordinate: 4.815600°N 7.049800°E
+3. Drone serialnumber: S004 maxWeight: 400 currentWeight: 0 batteryCapacity: 20000 State: IDLE Model: HEAVYWEIGHT Coordinate: 4.815600°N 7.049800°E
+4. Drone serialnumber: S001 maxWeight: 100 currentWeight: 0 batteryCapacity: 10000 State: IDLE Model: LIGHTWEIGHT Coordinate: 4.815600N 7.049800E
+Enter drone ID to Delete....</code></pre>
+<p>The user inputs a drone ID like below:</p>
+<pre><code class="language-yaml">S001</code></pre>
+<p>The program will respond with information showing the status of the operation the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to delete more drones any other input is invalid from the below menu is invalid, for successful operation information like below:</p>
+<pre><code class="language-yaml">Delete Drones
+1. Back
+2. Delete more Drones
+Drone with serial number S001 deleted Successfully.</code></pre>
+<p>If the drone ID was not found the program should display information like the below:</p>
+<pre><code class="language-yaml">Delete Drones
+1. Back
+2. Delete more Drones
+Drone with serial S011 not found.</code></pre>
+<p>The user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to delete more drones, if the user<strong> inputs 1</strong> to return to the preview menu like below:</p>
+<pre><code class="language-yaml">1. View Drones
+2. Create Drone
+3. Update Drone
+4. Delete Drone
+5. Get Drone
+6. Back</code></pre>
+<p>If the user <strong>inputs 5</strong> to get a drone with an existing drone ID, the program will display information like the below:</p>
+<pre><code class="language-yaml">Get drones
+1. Back
+Enter drone the ID that you want to retrieve</code></pre>
+<p>The user can <strong>input 1</strong> to go to the previous menu or input drone ID information to get like below:</p>
+<pre><code class="language-yaml">S002</code></pre>
+<p>The program will display the drone information and the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to get more drones by ID, any other input is invalid from below menu below:</p>
+<pre><code class="language-yaml">Get Drone
+1. Back
+2. Get more Drones
+Drone serialnumber: 0002 maxWeight: 250 currentWeight: 150 batteryCapacity: 12000 State: IDLE Model: MIDDLEWEIGHT Coordinate: 4.815600°N7.049800°E</code></pre>
+<p>If the drone ID was not found the program should display information like the below:</p>
+<pre><code class="language-yaml">Get Drone
+1. Back
+2. Get more Drones
+Drone with serial number S019 not found.</code></pre>
+<p>The user can <strong>input 1</strong> to return to the previous menu.</p>
+<pre><code class="language-yaml">1. View Drones
+2. Create Drone
+3. Update Drone
+4. Delete Drone
+5. Get Drone
+6. Back</code></pre>
+<p>Any input from the user that is not valid input based on the selected menu screen, the program should display below:</p>
+<pre><code class="language-yaml">Invalid response, Please enter a valid response.</code></pre>
+<p><strong>Main menu</strong> </p>
+<pre><code class="language-yaml">Enter instruction for drone medication API...
+1. Drones
+2. Medications
+3. UserAccounts
+4. Exit</code></pre>
+<p>From the main menu If the user <strong>inputs 2</strong> the program will load information about medication operations like the below:</p>
+<pre><code class="language-yaml">1. View Medications
+2. Create Medication
+3. Update Medication
+4. Delete Medication
+5. Get Medication
+6. Back</code></pre>
+<p>if the user <strong>inputs 1</strong> the program will load information about medications saved on the database like below:</p>
+<pre><code class="language-yaml">View medications
+1. Back
+Medications list
+1. Medication code: XYGIY_01 name: Paracetamol Weight: 30 imageURL: https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&amp;h=180&amp;c=7&amp;r=0&amp;o=5&amp;pid=1.7
+2. Medication code: 0363_0007 name: omeprazole Weight: 25 imageURL: https://www.drugs.com/images/pills/fio/GMK03970.JPG
+3. Medication code: 0591_0405 name: Lisinopril Weight: 60 imageURL: https://www.lupin.com/US/wp-content/uploads/2021/06/lisinopril-tablets-usp-40mg.jpg
+4. Medication code: EM2N5P8" name: Montelukast Weight: 30 imageURL: https://th.bing.com/th/id/OIP.UKCusqDb2OqO0Yc7YkUZYwHaHa?pid=ImgDet&amp;rs=1
+5. Medication code: 0378_1800 name: levothyroxine Weight: 45 imageURL: https://th.bing.com/th/id/R.7fbd35f211e5d8d1d26a917886324ee2?rik=0V5LafFrz83tFQ&amp;pid=ImgRaw&amp;r=0
+6. Medication code: 0093_5056 name: atorvastatin Weight: 55 imageURL: https://th.bing.com/th/id/OIP.UweW6J3LBoimlOFacJE1cAHaFj?rs=1&amp;pid=ImgDetMain</code></pre>
+<p>if the database is empty will display the information below:</p>
+<pre><code class="language-yaml">View medications
+1. Back
+The medication list is empty.</code></pre>
+<p>Any other input from the user that is not 1 in the menu above is not valid input and the program should display below:</p>
+<pre><code class="language-yaml">Invalid response, Please enter a valid response</code></pre>
+<p>If the user <strong>inputs 1</strong> which is the only valid input allowed from the menu above, the program will load the previous medication menu like the below:</p>
+<pre><code class="language-yaml">1. View Medications
+2. Create Medication
+3. Update Medication
+4. Delete Medication
+5. Get Medication
+6. Back</code></pre>
+<p>if the user <strong>inputs 2</strong> the program will load information about creating medication on the database like below:</p>
+<pre><code class="language-yaml">Create medications
+1. Back
+Enter new medication information....
+medication code, name, weight, imageURL</code></pre>
+<p>The user can <strong>input 1</strong> to go to the previous menu or input new medication information separated by "," like below:</p>
+<pre><code class="language-yaml">0363_0007 ,omeprazole ,25, https://www.drugs.com/images/pills/fio/GMK03970.JPG</code></pre>
+<p>The program should output below to indicate that the medication was created successfully:</p>
+<pre><code class="language-yaml">Create medications
+1. Back
+2. Create more medications
+Medication 0363_0007 created successfully.</code></pre>
+<p>If the user inputs an invalid medication parameter for creating medication the program should display the information below:</p>
+<pre><code class="language-yaml">The parameters you entered are not valid medication parameters, please enter a valid medication parameter.</code></pre>
+<p>The allowed input from the menu above is <strong>1</strong> to return to the previous menu or <strong>2</strong> to create more medications. Users can <strong>input 1</strong> to go to the previous menu or <strong>input 2</strong> to create more medications like the below:</p>
+<pre><code class="language-yaml">Create medications
+1. Back
+Enter new medication information....
+medication code, name, weight, imageURL</code></pre>
+<p>If the user <strong>input 1</strong> to go back to the preview menu like below:</p>
+<pre><code class="language-yaml">1. View Medications
+2. Create Medication
+3. Update Medication
+4. Delete Medication
+5. Get Medication
+6. Back</code></pre>
+<p>If the user <strong>inputs 3</strong> to update a medication with an existing medication code, the system will then display a list of all available medications. user can <strong>input 1</strong> to return to the previous menu or simply select the desired medication from the list to proceed with the update like below:</p>
+<pre><code class="language-yaml">Update medications
+1. Back
+Medications list
+1. Medication code: XYGIY_01 name: Paracetamol Weight: 30 imageURL: https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&amp;h=180&amp;c=7&amp;r=0&amp;o=5&amp;pid=1.7
+2. Medication code: 0363_0007 name: omeprazole Weight: 25 imageURL: https://www.drugs.com/images/pills/fio/GMK03970.JPG
+3. Medication code: 0591_0405 name: Lisinopril Weight: 60 imageURL: https://www.lupin.com/US/wp-content/uploads/2021/06/lisinopril-tablets-usp-40mg.jpg
+4. Medication code: EM2N5P8" name: Montelukast Weight: 30 imageURL: https://th.bing.com/th/id/OIP.UKCusqDb2OqO0Yc7YkUZYwHaHa?pid=ImgDet&amp;rs=1
+5. Medication code: 0378_1800 name: levothyroxine Weight: 45 imageURL: https://th.bing.com/th/id/R.7fbd35f211e5d8d1d26a917886324ee2?rik=0V5LafFrz83tFQ&amp;pid=ImgRaw&amp;r=0
+6. Medication code: 0093_5056 name: atorvastatin Weight: 55 imageURL: https://th.bing.com/th/id/OIP.UweW6J3LBoimlOFacJE1cAHaFj?rs=1&amp;pid=ImgDetMain
+Enter medication ID to update....
+medication code, name, weight, imageURL</code></pre>
+<p>The user inputs valid medication information for updates like the below:</p>
+<pre><code class="language-yaml">0363_0007 , omeprazole ,45, https://www.drugs.com/images/pills/fio/GMK03970.JPG</code></pre>
+<p>The program will respond with information showing the status of the operation, then the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to update more medications, for successful operation information like below:</p>
+<pre><code class="language-yaml">Updated medications
+1. Back
+2. Update more medications
+Medication with code 0363_0007 updated successfully.</code></pre>
+<p>For unsuccessful operations, example when the ID entered does not exist information like the below:</p>
+<pre><code class="language-yaml">Updated medications
+1. Back
+2. Update more medications
+Medication with code 0363_0099 not found.</code></pre>
+<p>When a user enters an invalid medication parameter for update the program should display information like the below:</p>
+<pre><code class="language-yaml">The parameters you entered are not valid medication parameters, please enter a valid medication parameter.</code></pre>
+<p>If the user <strong>inputs 1</strong> to return to the previous menu.</p>
+<pre><code class="language-yaml">1. View Medications
+2. Create Medication
+3. Update Medication
+4. Delete Medication
+5. Get Medication
+6. Back</code></pre>
+<p>Users can <strong>input 4</strong> to delete a medication with an existing medication id, the system will then display a list of all available medications. Simply select the desired medication ID from the list to proceed with the delete like below:</p>
+<pre><code class="language-yaml">Delete medications
+1. Back
+Medications list
+1. Medication code: XYGIY_01 name: Paracetamol Weight: 30 imageURL: https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&amp;h=180&amp;c=7&amp;r=0&amp;o=5&amp;pid=1.7
+2. Medication code: 0363_0007 name: omeprazole Weight: 15 imageURL: https://www.drugs.com/images/pills/fio/GMK03970.JPG
+3. Medication code: 0591_0405 name: Lisinopril Weight: 60 imageURL: https://www.lupin.com/US/wp-content/uploads/2021/06/lisinopril-tablets-usp-40mg.jpg
+4. Medication code: EM2N5P8" name: Montelukast Weight: 30 imageURL: https://th.bing.com/th/id/OIP.UKCusqDb2OqO0Yc7YkUZYwHaHa?pid=ImgDet&amp;rs=1
+5. Medication code: 0378_1800 name: levothyroxine Weight: 45 imageURL: https://th.bing.com/th/id/R.7fbd35f211e5d8d1d26a917886324ee2?rik=0V5LafFrz83tFQ&amp;pid=ImgRaw&amp;r=0
+6. Medication code: 0093_5056 name: atorvastatin Weight: 55 imageURL: https://th.bing.com/th/id/OIP.UweW6J3LBoimlOFacJE1cAHaFj?rs=1&amp;pid=ImgDetMain
+Enter medication ID to Delete...</code></pre>
+<p>The user inputs the medication ID like below:</p>
+<pre><code class="language-yaml">0363_0007</code></pre>
+<p>The program will respond with information showing the status of the operation the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to delete more medications, for successful operation information like the below:</p>
+<pre><code class="language-yaml">Delete medications
+1. Back
+2. Delete more medications
+Medication with code 0363_0007 deleted Successfully.</code></pre>
+<p>If the medication ID was not found the program should display information like the below:</p>
+<pre><code class="language-yaml">Delete medications
+1. Back
+2. Delete more medications
+Medication with code 0363_0099 not found.</code></pre>
+<p>Users can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to delete more medication like below, any other input is invalid from the above menu.</p>
+<pre><code class="language-yaml">1. View Medications
+2. Create Medication
+3. Update Medication
+4. Delete Medication
+5. Get Medication
+6. Back</code></pre>
+<p>Users can <strong>input 5</strong> to get a drone with an existing medication ID, the program will display information like the below:</p>
+<pre><code class="language-yaml">Get Medications
+1. Back
+Enter the medication ID that you want to retrieve.</code></pre>
+<p>If the user <strong>inputs 1</strong> to go to the previous menu or inputs medication ID information to get like below:</p>
+<pre><code class="language-yaml">XYGIY_01</code></pre>
+<p>The program will display the medication information and the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to get more medication by ID, any other input is invalid from the above menu:</p>
+<pre><code class="language-yaml">Get medications
+1. Back
+2. Get more medications
+Medication code: XYGIY_01 name: Paracetamol Weight: 30 imageURL: https://th.bing.com/th/id/OIP.CjEDMQk7TEODMKh4MZFfGgD6D6?w=166&amp;h=180&amp;c=7&amp;r=0&amp;o=5&amp;pid=1.7</code></pre>
+<p>If the medication ID was not found the program should display information like the below:</p>
+<pre><code class="language-yaml">Get medications
+1. Back
+2. Get more medications
+Medication with ID XYGIY_99 not found</code></pre>
+<p>Any input from the user that is not valid input based on the selected menu screen, the program should display below:</p>
+<pre><code class="language-yaml">Invalid response, Please enter a valid response.</code></pre>
+<p><strong>Main menu</strong> </p>
+<pre><code class="language-yaml">Enter instruction for drone medication API...
+1. Drones
+2. Medications
+3. UserAccounts
+4. Exit</code></pre>
+<p>From the main menu If the user <strong>inputs 3</strong> the program will load information about user account operations like the below: </p>
+<pre><code class="language-yaml">1. View UserAccounts
+2. Create UserAccount
+3. Update UserAccount
+4. Delete UserAccount
+5. Get UserAccount
+6. Back</code></pre>
+<p>if the user <strong>inputs 1</strong> the program will load information about the user account saved on the database like below:</p>
+<pre><code class="language-yaml">View UserAccounts
+1. Back
+UserAccounts list
+1. UserAccount name:  Emily Davis phoneNumber:  4157890123 address: 789 Cedar Street Sacramento California(CA) 95814 account: ADMIN
+2. UserAccount name:  John Smith phoneNumber:  5109876543 address:  456 Pine Avenue Los Angeles California(CA) 90001 account: CUSTOMER
+3. UserAccount name:  Olivia White phoneNumber:  6504321876 address:  202 Birch Street San Jose California(CA) 95110 account: CUSTOMER
+4. UserAccount name:  Michael Martinez phoneNumber:  9163456789 address:  101 Walnut Avenue San Diego California(CA) 92101 account: CUSTOMER</code></pre>
+<p>if the database is empty will display the information below: </p>
+<pre><code class="language-yaml">View UserAccounts
+1. Back
+The UserAccounts list is empty.</code></pre>
+<p> Any other input from the user that is not <strong>1</strong> in the menu above is not valid input and the program should display below:</p>
+<pre><code class="language-yaml">Invalid response, Please enter a valid response</code></pre>
+<p>If the user <strong>inputs 1</strong> which is the only valid input allowed from the menu above, the program will load the previous user account menu like the below:</p>
+<pre><code class="language-yaml">1. View UserAccounts
+2. Create UserAccount
+3. Update UserAccount
+4. Delete UserAccount
+5. Get UserAccount
+6. Back</code></pre>
+<p>if the user <strong>inputs 2</strong> the program will load information about creating a user account on the database like the below:</p>
+<pre><code class="language-yaml">Create UserAccount
+1. Back
+Enter new UserAccount information....
+User accountType, name, phoneNumber, address, gps coordinates</code></pre>
+<p>The user can <strong>input 1</strong> to go to the previous menu or input new medication information separated by "," like below:</p>
+<pre><code class="language-yaml">ADMIN, Emily Davis,4157890123,789 Cedar Street Sacramento California(CA) 95814,34.05223 -118.24368</code></pre>
+<p>The program should output below to indicate that the user account was created successfully: </p>
+<pre><code class="language-yaml">Create userAccounts
+1. Back
+2. Create more userAccounts
+User with phone number 4157890123 created successfully.</code></pre>
+<p> If the user enters an invalid user account parameter for creating a user account the program should display the information below:</p>
+<pre><code class="language-yaml">The parameters you entered are not valid userAccounts parameters, please enter a valid userAccounts parameter.</code></pre>
+<p>The allowed input from the menu above is <strong>1</strong> to return to the previous menu or <strong>2</strong> to create more user accounts any other input is invalid from the above menu. Users can <strong>input 1</strong> to go to the previous menu or <strong>input 2</strong> to create more user accounts like the below:</p>
+<pre><code class="language-yaml">Create UserAccount
+1. Back
+Enter new UserAccount information....
+User accountType, name, phoneNumber, address, gps coordinates</code></pre>
+<p>Users can <strong>input 1</strong> to go back to the preview menu like below: </p>
+<pre><code class="language-yaml">1. View UserAccounts
+2. Create UserAccount
+3. Update UserAccount
+4. Delete UserAccount
+5. Get UserAccount
+6. Back</code></pre>
+<p>If the user <strong>inputs 3</strong> to update a user account with an existing user account phone number, the system will then display a list of all available user accounts. Users can <strong>input 1</strong> to return to the previous menu or simply select the desired user account from the list to proceed with the update like below: </p>
+<pre><code class="language-yaml">Update UserAccount
+1. Back
+UserAccounts list
+1. UserAccount name:  Emily Davis phoneNumber:  4157890123 address: 789 Cedar Street Sacramento California(CA) 95814 account: ADMIN
+2. UserAccount name:  John Smith phoneNumber:  5109876543 address:  456 Pine Avenue Los Angeles California(CA) 90001 account: CUSTOMER
+3. UserAccount name:  Olivia White phoneNumber:  6504321876 address:  202 Birch Street San Jose California(CA) 95110 account: CUSTOMER
+4. UserAccount name:  Michael Martinez phoneNumber:  9163456789 address:  101 Walnut Avenue San Diego California(CA) 92101 account: CUSTOMER
+Enter UserAccount ID to update....
+User accountType, name, phoneNumber, address, gps coordinates</code></pre>
+<p>The user inputs valid user account information for updates like below:</p>
+<pre><code class="language-yaml">ADMIN, Emily Davis, 4157890123,789 Cedar Street Sacramento California(CA) 99909, 34.05223 -118.24368</code></pre>
+<p>The program will respond with information showing the status of the operation, and then the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to update more user accounts any other input is invalid from the below menu, for successful operation will display information like the below:</p>
+<pre><code class="language-yaml">Updated userAccounts
+1. Back
+2. Update more userAccounts
+User with phone number 4157890123 updated successfully.</code></pre>
+<p>For unsuccessful operation, example when the id entered does not exist information like below: </p>
+<pre><code class="language-yaml">Updated userAccounts
+1. Back
+2. Update more userAccounts
+User with phone number  4157899123 not found.</code></pre>
+<p> When a user enters an invalid user account parameter for an update the program should display information like the below: </p>
+<pre><code class="language-yaml">The parameters you entered are not valid userAccounts parameters, please enter a valid userAccounts parameter.</code></pre>
+<p>Users can <strong>input 1</strong> to return to the previous menu.</p>
+<pre><code class="language-yaml">1. View UserAccounts
+2. Create UserAccount
+3. Update UserAccount
+4. Delete UserAccount
+5. Get UserAccount
+6. Back</code></pre>
+<p>Users can <strong>input 4</strong> to delete a user account with an existing user account id, the system will then display a list of all available user accounts. Simply select the desired user account ID from the list to proceed with the delete like below:</p>
+<pre><code class="language-yaml">Delete UserAccount
+1. Back
+UserAccounts list
+1. UserAccount name: Emily Davis phoneNumber: 4157890123 address: 789 Cedar Street Sacramento California(CA) 99909 account: ADMIN
+2. UserAccount name: John Smith phoneNumber: 5109876543 address:  456 Pine Avenue Los Angeles California(CA) 90001 account: CUSTOMER
+3. UserAccount name: Olivia White phoneNumber: 6504321876 address:  202 Birch Street San Jose California(CA) 95110 account: CUSTOMER
+4. UserAccount name: Michael Martinez phoneNumber: 9163456789 address:  101 Walnut Avenue San Diego California(CA) 92101 account: CUSTOMER
+Enter UserAccount ID to Delete...</code></pre>
+<p>The user inputs the medication ID like below:</p>
+<pre><code class="language-yaml">4157890123</code></pre>
+<p>The program will respond with information showing the status of the operation the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to delete more user accounts any other input is invalid from the below menu, for successful operation information like below:</p>
+<pre><code class="language-yaml">Delete userAccounts
+1. Back
+2. Delete more userAccounts
+User with phone number 4157890123 deleted Successfully.</code></pre>
+<p>If the user account ID was not found the program should display information like the below: </p>
+<pre><code class="language-yaml">Delete userAccounts
+1. Back
+2. Delete more userAccounts
+User with phone number 4157890100 not found.</code></pre>
+<p>If the user <strong>inputs 1</strong> to return to the previous menu or <strong>inputs 2</strong> to delete more user accounts like below. </p>
+<pre><code class="language-yaml">1. View UserAccounts
+2. Create UserAccount
+3. Update UserAccount
+4. Delete UserAccount
+5. Get UserAccount
+6. Back</code></pre>
+<p>If the user <strong>inputs 5</strong> to get a user account with an existing user account ID, the program will display information like the below: </p>
+<pre><code class="language-yaml">Get UserAccount
+1. Back
+Enter the UserAccount ID that you want to retrieve.</code></pre>
+<p> The user can <strong>input 1</strong> to go to the previous menu or input user account ID information to get like below:</p>
+<pre><code class="language-yaml">9163456789</code></pre>
+<p>The program will display the user account information and the user can <strong>input 1</strong> to return to the previous menu or <strong>input 2</strong> to get more user accounts by ID: </p>
+<pre><code class="language-yaml">Get userAccounts
+1. Back
+2. Get more userAccounts
+UserAccount name: Michael Martinez phoneNumber: 9163456789 address: 101 Walnut Avenue San Diego California(CA) 92101 account: GUEST</code></pre>
+<p>If the user account ID was not found the program should display information like the below: </p>
+<pre><code class="language-yaml">Get userAccounts
+1. Back
+2. Get more userAccounts
+UserAccounts with ID 9163456788 not found.</code></pre>
+<p><strong>Tips: </strong></p>
+<p>1.<strong> </strong>Add the following line to your <code class="language-yaml">application.properties</code> file to indicate that your application is not a web application.</p>
+<pre><code class="language-yaml">spring.main.web-application-type=NONE</code></pre>
+<p> 2. Ensure that the IDs of your models consist of at least two digits to prevent interference with your menu controls.</p>
+
+</div>

@@ -1,0 +1,18 @@
+type: hyperskill
+title: Drone Medication API
+language: English
+summary: "<div><p>Create your own drone delivery system for medication with REST API,\
+  \ this project involves dispatching drones to designated GPS locations, monitoring\
+  \ their movements, and assessing their availability and battery levels. Employ an\
+  \ embedded database and implement security measures to safeguard sensitive information.\
+  \ Log and monitor the entire process in your database. This project offers hands-on\
+  \ experience in mastering Spring Boot and reinforces key backend development skills.</p>\r\
+  \n\r\n<div id=\"gtx-trans\" style=\"left:-63px; position:absolute; top:-6px\">\r\
+  \n<div class=\"gtx-trans-icon\">\_</div>\r\n</div></div><br/><br/>Learn more at\
+  \ <a href=\"https://hyperskill.org/projects/450?utm_source=ide&utm_medium=ide&utm_campaign=ide&utm_content=project-card\"\
+  >https://hyperskill.org/projects/450</a>"
+programming_language: Java
+programming_language_version: 11
+content:
+  - Drone Medication API
+mode: Study
