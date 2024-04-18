@@ -2,13 +2,17 @@ package DroneMed.models;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 
 @Entity
 public class Medication {
     @Id
     private String code;
+    @NotNull
     private String name;
+    @NotNull
     private int weight;
+    @NotNull
     private String imageURL;
 
     public Medication() {

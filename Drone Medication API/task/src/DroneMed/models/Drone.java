@@ -4,20 +4,25 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 
 @Entity
 public class Drone {
     @Id
     private String serialNumber;
+    @NotNull
     private int maxWeight;
+    @NotNull
     private int currentWeight;
+    @NotNull
     private int batteryCapacity;
-
+    @NotNull
     @Enumerated(EnumType.STRING)
     private DroneState State;
-
+    @NotNull
     @Enumerated(EnumType.STRING)
     private DroneModel model;
+    @NotNull
     private String currentCoordinate;
 
     public Drone() {

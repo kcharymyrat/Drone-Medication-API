@@ -7,6 +7,8 @@ import DroneMed.repositories.UserAccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,21 +30,21 @@ public class UserService {
     public String createUser(UserAccount userAccount) {
         try {
             repository.save(userAccount);
-            return "User with phone number " + userAccount.getPhoneNumber() + " created successfully.";
+            return "The user with phone number " + userAccount.getPhoneNumber() + " was created successfully.";
         } catch (Exception e) {
-            return "The parameters you entered are not valid userAccounts parameters, please enter a valid userAccounts parameter.";
+            return "The parameter you entered contains a null or invalid parameter, Please enter a valid user account parameter.";
         }
     }
 
     public String updateUser(UserAccount userAccount) {
         try {
             if (repository.findByPhoneNumber(userAccount.getPhoneNumber()) == null) {
-                return "User with phone number " + userAccount.getPhoneNumber() + " not found.";
+                return "The user with phone number " + userAccount.getPhoneNumber() + " was not found.";
             }
             repository.save(userAccount);
-            return "User with phone number " + userAccount.getPhoneNumber() + " updated successfully.";
+            return "The user with phone number " + userAccount.getPhoneNumber() + " was updated successfully.";
         } catch (Exception e) {
-            return "User with phone number " + userAccount.getPhoneNumber() + " not found.";
+            return "The user with phone number " + userAccount.getPhoneNumber() + " was not found.";
         }
     }
 
@@ -50,13 +52,23 @@ public class UserService {
     public String deleteUser(String phoneNumber) {
         try {
             repository.delete(repository.findByPhoneNumber(phoneNumber));
-            return "User with phone number " + phoneNumber + " deleted Successfully.";
+            return "The user with phone number " + phoneNumber + " was deleted Successfully.";
         } catch (Exception e) {
-            return "User with phone number " + phoneNumber + " not found.";
+            return "The user with phone number " + phoneNumber + " was not found.";
         }
     }
 
     public Optional<UserAccount> getUser(String phoneNumber) {
         return Optional.ofNullable(repository.findByPhoneNumber(phoneNumber));
+    }
+
+
+    @Transactional
+    public List<String> createUsers(List<UserAccount> users) {
+        List<String> res = new ArrayList<>();
+        for (UserAccount u: users) {
+            res.add(createUser(u));
+        }
+        return res;
     }
 }

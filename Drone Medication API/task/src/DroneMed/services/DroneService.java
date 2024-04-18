@@ -5,6 +5,8 @@ import DroneMed.models.Drone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,30 +25,30 @@ public class DroneService {
     public String createDrone(Drone drone) {
         try {
             repository.save(drone);
-            return "Drone with serial number " + drone.getSerialNumber() + " created successfully.";
+            return "The drone with serial number " + drone.getSerialNumber() + " was created successfully.";
         } catch (Exception e) {
-            return "The parameters you entered are not valid drone parameters, please enter a valid drone parameter.";
+            return "The parameter you entered contains a null or invalid parameter, Please enter a valid drone parameter.";
         }
     }
 
     public String updateDrone(Drone drone) {
         try {
             if (repository.findBySerialNumber(drone.getSerialNumber()) == null) {
-                return "Drone with serial number " + drone.getSerialNumber() + " not found.";
+                return "The drone with serial number " + drone.getSerialNumber() + " was not found.";
             }
             repository.save(drone);
-            return "Drone with serial number " + drone.getSerialNumber() + " updated successfully.";
+            return "The drone with serial number " + drone.getSerialNumber() + " was updated successfully.";
         } catch (Exception e) {
-            return "Drone with serial number " + drone.getSerialNumber() + " not found.";
+            return "The drone with serial number " + drone.getSerialNumber() + " was not found.";
         }
     }
 
     public String deleteDrone(String serialNumber) {
         try {
             repository.delete(repository.findBySerialNumber(serialNumber));
-            return "Drone with serial number "+ serialNumber + " deleted Successfully.";
+            return "The drone with serial number "+ serialNumber + " was deleted Successfully.";
         } catch (Exception e) {
-            return "Drone with serial number " + serialNumber.toLowerCase() + " not found.";
+            return "The drone with serial number " + serialNumber + " was not found.";
         }
     }
 
@@ -54,4 +56,13 @@ public class DroneService {
         return repository.findBySerialNumber(serialNumber);
     }
 
+
+    @Transactional
+    public List<String> createDrones(List<Drone> drones) {
+        List<String> res = new ArrayList<>();
+        for (Drone drone : drones) {
+            res.add(createDrone(drone));
+        }
+        return res;
+    }
 }

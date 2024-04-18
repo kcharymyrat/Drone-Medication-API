@@ -4,20 +4,25 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 
 @Entity
 public class UserAccount {
 
+    @NotNull
     @Enumerated(EnumType.STRING)
     private Account account;
 
+    @NotNull
     private String name;
 
     @Id
     private String phoneNumber;
 
+    @NotNull
     private String address;
 
+    @NotNull
     private String gpsCoordinate;
 
     public UserAccount() {

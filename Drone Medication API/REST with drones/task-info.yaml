@@ -1482,6 +1482,537 @@ files:
       }
     
     learner_created: false
-feedback_link: https://hyperskill.org/projects/450/stages/2609/implement#comment
-status: Unchecked
+  - name: src/DroneMed/models/UserAccount.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      import javax.persistence.Entity;
+      import javax.persistence.EnumType;
+      import javax.persistence.Enumerated;
+      import javax.persistence.Id;
+      
+      @Entity
+      public class UserAccount {
+      
+          @Enumerated(EnumType.STRING)
+          private Account account;
+      
+          private String name;
+      
+          @Id
+          private String phoneNumber;
+      
+          private String address;
+      
+          private String gpsCoordinate;
+      
+          public UserAccount() {
+          }
+      
+          public UserAccount(Account account, String name, String phoneNumber, String address, String gpsCoordinate) {
+              this.account = account;
+              this.name = name;
+              this.phoneNumber = phoneNumber;
+              this.address = address;
+              this.gpsCoordinate = gpsCoordinate;
+          }
+      
+          public String getName() {
+              return name;
+          }
+      
+          public void setName(String name) {
+              this.name = name;
+          }
+      
+          public String getPhoneNumber() {
+              return phoneNumber;
+          }
+      
+          public void setPhoneNumber(String phoneNumber) {
+              this.phoneNumber = phoneNumber;
+          }
+      
+          public String getAddress() {
+              return address;
+          }
+      
+          public void setAddress(String address) {
+              this.address = address;
+          }
+      
+          public String getGpsCoordinate() {
+              return gpsCoordinate;
+          }
+      
+          public void setGpsCoordinate(String gpsCoordinate) {
+              this.gpsCoordinate = gpsCoordinate;
+          }
+      
+          public Account getAccount() {
+              return account;
+          }
+      
+          public void setAccount(Account account) {
+              this.account = account;
+          }
+      
+          @Override
+          public String toString() {
+              return "UserAccount name: " + this.getName()+ " phoneNumber: " + this.getPhoneNumber() + " address: " + this.getAddress() + " account: " + this.getAccount();
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/repositories/DroneRepository.java
+    visible: true
+    text: |
+      package DroneMed.repositories;
+      
+      import DroneMed.models.Drone;
+      import org.springframework.data.repository.CrudRepository;
+      
+      public interface DroneRepository extends CrudRepository<Drone, String> {
+          Drone findBySerialNumber(String serialNumber);
+      }
+    learner_created: true
+  - name: src/DroneMed/models/Account.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      public enum Account {
+          ADMIN,
+          CUSTOMER,
+          GUEST,
+      }
+    learner_created: true
+  - name: src/DroneMed/models/DroneModel.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      public enum DroneModel {
+          LIGHTWEIGHT,
+          MIDDLEWEIGHT,
+          CRUISERWEIGHT,
+          HEAVYWEIGHT
+      }
+    learner_created: true
+  - name: src/DroneMed/services/DroneService.java
+    visible: true
+    text: |
+      package DroneMed.services;
+      
+      import DroneMed.repositories.DroneRepository;
+      import DroneMed.models.Drone;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Service;
+      
+      import java.util.List;
+      
+      @Service
+      public class DroneService {
+          private final DroneRepository repository;
+      
+          @Autowired
+          public DroneService(DroneRepository repository) {
+              this.repository = repository;
+          }
+      
+          public List<Drone> getAllDrones() {
+              return (List<Drone>) repository.findAll();
+          }
+      
+          public String createDrone(Drone drone) {
+              try {
+                  repository.save(drone);
+                  return "Drone with serial number " + drone.getSerialNumber() + " created successfully.";
+              } catch (Exception e) {
+                  return "The parameters you entered are not valid drone parameters, please enter a valid drone parameter.";
+              }
+          }
+      
+          public String updateDrone(Drone drone) {
+              try {
+                  if (repository.findBySerialNumber(drone.getSerialNumber()) == null) {
+                      return "Drone with serial number " + drone.getSerialNumber() + " not found.";
+                  }
+                  repository.save(drone);
+                  return "Drone with serial number " + drone.getSerialNumber() + " updated successfully.";
+              } catch (Exception e) {
+                  return "Drone with serial number " + drone.getSerialNumber() + " not found.";
+              }
+          }
+      
+          public String deleteDrone(String serialNumber) {
+              try {
+                  repository.delete(repository.findBySerialNumber(serialNumber));
+                  return "Drone with serial number "+ serialNumber + " deleted Successfully.";
+              } catch (Exception e) {
+                  return "Drone with serial number " + serialNumber.toLowerCase() + " not found.";
+              }
+          }
+      
+          public Drone getDrone(String serialNumber) {
+              return repository.findBySerialNumber(serialNumber);
+          }
+      
+      }
+    learner_created: true
+  - name: src/DroneMed/models/DroneState.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      public enum DroneState {
+          IDLE,
+          DELIVERING,
+          DELIVERED,
+          RETURNING
+      }
+    learner_created: true
+  - name: src/DroneMed/models/Medication.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      import javax.persistence.Entity;
+      import javax.persistence.Id;
+      
+      @Entity
+      public class Medication {
+          @Id
+          private String code;
+          private String name;
+          private int weight;
+          private String imageURL;
+      
+          public Medication() {
+          }
+      
+          public Medication(String code, String name, int weight, String imageURL) {
+              this.code = code;
+              this.name = name;
+              this.weight = weight;
+              this.imageURL = imageURL;
+          }
+      
+          public String getCode() {
+              return code;
+          }
+      
+          public void setCode(String code) {
+              this.code = code;
+          }
+      
+          public String getName() {
+              return name;
+          }
+      
+          public void setName(String name) {
+              this.name = name;
+          }
+      
+          public int getWeight() {
+              return weight;
+          }
+      
+          public void setWeight(int weight) {
+              this.weight = weight;
+          }
+      
+          public String getImageURL() {
+              return imageURL;
+          }
+      
+          public void setImageURL(String imageURL) {
+              this.imageURL = imageURL;
+          }
+      
+          @Override
+          public String toString() {
+              return "Medication code: " + this.getCode() + " name: " + this.getName() + " Weight: " + this.getWeight() + " imageURL: " + this.getImageURL();
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/services/UserService.java
+    visible: true
+    text: |
+      package DroneMed.services;
+      
+      import DroneMed.models.Drone;
+      import DroneMed.models.UserAccount;
+      import DroneMed.repositories.DroneRepository;
+      import DroneMed.repositories.UserAccountRepository;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Service;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      @Service
+      public class UserService {
+      
+          private final UserAccountRepository repository;
+      
+          @Autowired
+          public UserService(UserAccountRepository repository) {
+              this.repository = repository;
+          }
+      
+          public List<UserAccount> getAllUsers() {
+              return (List<UserAccount>) repository.findAll();
+          }
+      
+      
+          public String createUser(UserAccount userAccount) {
+              try {
+                  repository.save(userAccount);
+                  return "User with phone number " + userAccount.getPhoneNumber() + " created successfully.";
+              } catch (Exception e) {
+                  return "The parameters you entered are not valid userAccounts parameters, please enter a valid userAccounts parameter.";
+              }
+          }
+      
+          public String updateUser(UserAccount userAccount) {
+              try {
+                  if (repository.findByPhoneNumber(userAccount.getPhoneNumber()) == null) {
+                      return "User with phone number " + userAccount.getPhoneNumber() + " not found.";
+                  }
+                  repository.save(userAccount);
+                  return "User with phone number " + userAccount.getPhoneNumber() + " updated successfully.";
+              } catch (Exception e) {
+                  return "User with phone number " + userAccount.getPhoneNumber() + " not found.";
+              }
+          }
+      
+      
+          public String deleteUser(String phoneNumber) {
+              try {
+                  repository.delete(repository.findByPhoneNumber(phoneNumber));
+                  return "User with phone number " + phoneNumber + " deleted Successfully.";
+              } catch (Exception e) {
+                  return "User with phone number " + phoneNumber + " not found.";
+              }
+          }
+      
+          public Optional<UserAccount> getUser(String phoneNumber) {
+              return Optional.ofNullable(repository.findByPhoneNumber(phoneNumber));
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/models/Drone.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      import javax.persistence.Entity;
+      import javax.persistence.EnumType;
+      import javax.persistence.Enumerated;
+      import javax.persistence.Id;
+      
+      @Entity
+      public class Drone {
+          @Id
+          private String serialNumber;
+          private int maxWeight;
+          private int currentWeight;
+          private int batteryCapacity;
+      
+          @Enumerated(EnumType.STRING)
+          private DroneState State;
+      
+          @Enumerated(EnumType.STRING)
+          private DroneModel model;
+          private String currentCoordinate;
+      
+          public Drone() {
+          }
+      
+          public Drone(
+                  String serialNumber,
+                  int maxWeight,
+                  int currentWeight,
+                  int batteryCapacity,
+                  DroneState state,
+                  DroneModel model,
+                  String currentCoordinate
+          ) {
+              this.serialNumber = serialNumber;
+              this.maxWeight = maxWeight;
+              this.currentWeight = currentWeight;
+              this.batteryCapacity = batteryCapacity;
+              this.State = state;
+              this.model = model;
+              this.currentCoordinate = currentCoordinate;
+          }
+      
+          public String getSerialNumber() {
+              return serialNumber;
+          }
+      
+          public void setSerialNumber(String serialNumber) {
+              this.serialNumber = serialNumber;
+          }
+      
+          public int getMaxWeight() {
+              return maxWeight;
+          }
+      
+          public void setMaxWeight(int maxWeight) {
+              this.maxWeight = maxWeight;
+          }
+      
+          public int getCurrentWeight() {
+              return currentWeight;
+          }
+      
+          public void setCurrentWeight(int currentWeight) {
+              this.currentWeight = currentWeight;
+          }
+      
+          public int getBatteryCapacity() {
+              return batteryCapacity;
+          }
+      
+          public void setBatteryCapacity(int batteryCapacity) {
+              this.batteryCapacity = batteryCapacity;
+          }
+      
+          public DroneState getState() {
+              return State;
+          }
+      
+          public void setState(DroneState state) {
+              this.State = state;
+          }
+      
+          public DroneModel getModel() {
+              return model;
+          }
+      
+          public void setModel(DroneModel model) {
+              this.model = model;
+          }
+      
+          public String getCurrentCoordinate() {
+              return currentCoordinate;
+          }
+      
+          public void setCurrentCoordinate(String currentCoordinate) {
+              this.currentCoordinate = currentCoordinate;
+          }
+      
+          @Override
+          public String toString() {
+              return "Drone serialnumber: " + this.getSerialNumber() + " maxWeight: " + this.getMaxWeight() + " currentWeight: " + this.getCurrentWeight() + " batteryCapacity: " + this.getBatteryCapacity() +
+                      " State: " + this.getState() + " Model: " + this.model + " Coordinate: " + this.getCurrentCoordinate();
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/repositories/UserAccountRepository.java
+    visible: true
+    text: |
+      package DroneMed.repositories;
+      
+      import DroneMed.models.UserAccount;
+      import org.springframework.data.repository.CrudRepository;
+      
+      public interface UserAccountRepository extends CrudRepository<UserAccount, String> {
+          UserAccount findByPhoneNumber(String phoneNumber);
+      }
+    learner_created: true
+  - name: src/DroneMed/repositories/MedicationRepository.java
+    visible: true
+    text: |
+      package DroneMed.repositories;
+      
+      import DroneMed.models.Medication;
+      import org.springframework.data.repository.CrudRepository;
+      
+      public interface MedicationRepository extends CrudRepository<Medication, String> {
+          Medication findByCode(String code);
+      }
+    learner_created: true
+  - name: src/DroneMed/services/MedicationService.java
+    visible: true
+    text: |
+      package DroneMed.services;
+      
+      import DroneMed.models.Medication;
+      import DroneMed.repositories.MedicationRepository;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Service;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      @Service
+      public class MedicationService {
+      
+          private final MedicationRepository repository;
+      
+          @Autowired
+          public MedicationService(MedicationRepository repository) {
+              this.repository = repository;
+          }
+      
+      
+          public List<Medication> getAllMedication() {
+              return (List<Medication>) repository.findAll();
+          }
+      
+          public String createMedication(Medication medication) {
+              try {
+                  repository.save(medication);
+                  return "Medication with code " + medication.getCode() + " created successfully.";
+              } catch (Exception e) {
+                  return "The parameters you entered are not valid medication parameters, please enter a valid medication parameter.";
+              }
+          }
+      
+         public String updateMedication(Medication medication) {
+             try {
+                 if (repository.findByCode(medication.getCode()) == null) {
+                     return "Medication with code " + medication.getCode() + " not found.";
+                 }
+                 repository.save(medication);
+                 return "Medication with code " + medication.getCode() + " updated successfully.";
+             } catch (Exception e) {
+                 return "Medication with code " + medication.getCode() + " not found.";
+             }
+         }
+      
+         public String deleteMedication(String code) {
+             try {
+                 repository.delete(repository.findByCode(code));
+                 return "Medication with code " + code + " deleted Successfully.";
+             } catch (Exception e) {
+                 return "Medication with code " + code + " not found.";
+             }
+         }
+      
+          public Optional<Medication> getMedication(String value) {
+              return Optional.ofNullable(repository.findByCode(value));
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/controllers/DroneController.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/responses/ResponseHandler.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/controllers/MedicationController.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/controllers/UserController.java
+    visible: true
+    learner_created: true
+feedback_link: https://hyperskill.org/learn/step/45547#comment
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Thu, 18 Apr 2024 14:14:32 UTC"
 record: -1

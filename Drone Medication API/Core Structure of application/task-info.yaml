@@ -1714,9 +1714,9 @@ files:
   - name: src/DroneMed/services/UserService.java
     visible: true
     learner_created: true
-feedback_link: https://hyperskill.org/projects/450/stages/2608/implement#comment
+feedback_link: https://hyperskill.org/learn/step/45546#comment
 status: Solved
 feedback:
   message: Congratulations!
   time: "Tue, 09 Apr 2024 21:03:05 UTC"
-record: -1
+record: 1
