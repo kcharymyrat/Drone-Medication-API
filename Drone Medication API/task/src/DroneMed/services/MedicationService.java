@@ -1,6 +1,8 @@
 package DroneMed.services;
 
+import DroneMed.mappers.MedicationMapper;
 import DroneMed.models.Medication;
+import DroneMed.models.MedicationDTO;
 import DroneMed.repositories.MedicationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,15 +11,18 @@ import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MedicationService {
 
     private final MedicationRepository repository;
+    private final MedicationMapper medicationMapper;
 
     @Autowired
-    public MedicationService(MedicationRepository repository) {
+    public MedicationService(MedicationRepository repository, MedicationMapper medicationMapper) {
         this.repository = repository;
+        this.medicationMapper = medicationMapper;
     }
 
 
@@ -67,5 +72,10 @@ public class MedicationService {
             res.add(createMedication(m));
         }
         return res;
+    }
+
+    public  List<MedicationDTO> getMedicationByName(String name) {
+        return repository.findByName(name).stream()
+                .map(medicationMapper::medicationToMedicationDTO).collect(Collectors.toList());
     }
 }

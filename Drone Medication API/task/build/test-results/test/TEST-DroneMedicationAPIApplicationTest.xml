@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="DroneMedicationAPIApplicationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-04-18T14:14:21" hostname="WIN-PK97IO7J39D" time="9.745">
+<testsuite name="DroneMedicationAPIApplicationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2024-04-23T03:08:11" hostname="WIN-PK97IO7J39D" time="85.829">
   <properties/>
-  <testcase name="start" classname="DroneMedicationAPIApplicationTest" time="9.745"/>
+  <testcase name="start" classname="DroneMedicationAPIApplicationTest" time="85.829"/>
   <system-out><![CDATA[?[1;31m
 Start test 1?[0m
 ?[0;34m
@@ -13,32 +13,31 @@ Start test 1?[0m
 ?[0m?[0;34m =========|_|==============|___/=/_/_/_/
 ?[0m?[0;34m :: Spring Boot ::                (v2.5.6)
 ?[0m?[0;34m
-?[0m?[0;34m2024-04-18 19:14:23.251  INFO 10600 --- [    Test worker] DroneMed.DroneMedicationAPIApplication   : Starting DroneMedicationAPIApplication using Java 17.0.10 on WIN-PK97IO7J39D with PID 10600 (started by User in D:\JetBrainsWork\Drone Medication API\Drone Medication API\task)
-?[0m?[0;34m2024-04-18 19:14:23.257 DEBUG 10600 --- [    Test worker] DroneMed.DroneMedicationAPIApplication   : Running with Spring Boot v2.5.6, Spring v5.3.12
-?[0m?[0;34m2024-04-18 19:14:23.257  INFO 10600 --- [    Test worker] DroneMed.DroneMedicationAPIApplication   : No active profile set, falling back to default profiles: default
-?[0m?[0;34m2024-04-18 19:14:24.851  INFO 10600 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-?[0m?[0;34m2024-04-18 19:14:24.942  INFO 10600 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 75 ms. Found 3 JPA repository interfaces.
-?[0m?[0;34m2024-04-18 19:14:25.855  INFO 10600 --- [    Test worker] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 28852 (http)
-?[0m?[0;34m2024-04-18 19:14:25.873  INFO 10600 --- [    Test worker] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-?[0m?[0;34m2024-04-18 19:14:25.873  INFO 10600 --- [    Test worker] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.54]
-?[0m?[0;34m2024-04-18 19:14:26.032  INFO 10600 --- [    Test worker] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring embedded WebApplicationContext
-?[0m?[0;34m2024-04-18 19:14:26.032  INFO 10600 --- [    Test worker] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2686 ms
-?[0m?[0;34m2024-04-18 19:14:26.240  INFO 10600 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-?[0m?[0;34m2024-04-18 19:14:26.516  INFO 10600 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-?[0m?[0;34m2024-04-18 19:14:26.532  INFO 10600 --- [    Test worker] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2'. Database available at 'jdbc:h2:file:../droneAPI_db'
-?[0m?[0;34m2024-04-18 19:14:26.800  INFO 10600 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-?[0m?[0;34m2024-04-18 19:14:26.882  INFO 10600 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.4.32.Final
-?[0m?[0;34m2024-04-18 19:14:27.117  INFO 10600 --- [    Test worker] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
-?[0m?[0;34m2024-04-18 19:14:27.290  INFO 10600 --- [    Test worker] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
-?[0m?[0;34m2024-04-18 19:14:28.164  INFO 10600 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
-?[0m?[0;34m2024-04-18 19:14:28.176  INFO 10600 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-?[0m?[0;34m2024-04-18 19:14:28.857  WARN 10600 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-?[0m?[0;34m2024-04-18 19:14:29.692  INFO 10600 --- [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 14 endpoint(s) beneath base path '/actuator'
-?[0m?[0;34m2024-04-18 19:14:29.771  INFO 10600 --- [    Test worker] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 28852 (http) with context path '/api'
-?[0m?[0;34m2024-04-18 19:14:29.789  INFO 10600 --- [    Test worker] DroneMed.DroneMedicationAPIApplication   : Started DroneMedicationAPIApplication in 7.173 seconds (JVM running for 8.764)
-?[0;34m2024-04-18 19:14:30.286  INFO 10600 --- [io-28852-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring DispatcherServlet 'dispatcherServlet'
-?[0m?[0;34m2024-04-18 19:14:30.287  INFO 10600 --- [io-28852-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-?[0m?[0;34m2024-04-18 19:14:30.290  INFO 10600 --- [io-28852-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+?[0m?[0;34m2024-04-23 08:08:13.898  INFO 13844 --- [    Test worker] DroneMed.DroneMedicationAPIApplication   : Starting DroneMedicationAPIApplication using Java 17.0.10 on WIN-PK97IO7J39D with PID 13844 (started by User in D:\JetBrainsWork\Drone Medication API\Drone Medication API\task)
+?[0m?[0;34m2024-04-23 08:08:13.903  INFO 13844 --- [    Test worker] DroneMed.DroneMedicationAPIApplication   : No active profile set, falling back to default profiles: default
+?[0m?[0;34m2024-04-23 08:08:15.936  INFO 13844 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+?[0m?[0;34m2024-04-23 08:08:16.064  INFO 13844 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 106 ms. Found 4 JPA repository interfaces.
+?[0m?[0;34m2024-04-23 08:08:18.191  INFO 13844 --- [    Test worker] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 28852 (http)
+?[0m?[0;34m2024-04-23 08:08:18.231  INFO 13844 --- [    Test worker] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+?[0m?[0;34m2024-04-23 08:08:18.234  INFO 13844 --- [    Test worker] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.54]
+?[0m?[0;34m2024-04-23 08:08:18.479  INFO 13844 --- [    Test worker] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring embedded WebApplicationContext
+?[0m?[0;34m2024-04-23 08:08:18.480  INFO 13844 --- [    Test worker] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4486 ms
+?[0m?[0;34m2024-04-23 08:08:18.892  INFO 13844 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+?[0m?[0;34m2024-04-23 08:08:19.381  INFO 13844 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+?[0m?[0;34m2024-04-23 08:08:19.397  INFO 13844 --- [    Test worker] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:file:../droneAPI_db'
+?[0m?[0;34m2024-04-23 08:08:20.086  INFO 13844 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+?[0m?[0;34m2024-04-23 08:08:20.215  INFO 13844 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.4.32.Final
+?[0m?[0;34m2024-04-23 08:08:20.599  INFO 13844 --- [    Test worker] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+?[0m?[0;34m2024-04-23 08:08:20.862  INFO 13844 --- [    Test worker] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+?[0m?[0;34m2024-04-23 08:08:22.193  INFO 13844 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+?[0m?[0;34m2024-04-23 08:08:22.207  INFO 13844 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+?[0m?[0;34m2024-04-23 08:08:23.170  WARN 13844 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+?[0m?[0;34m2024-04-23 08:08:24.043  INFO 13844 --- [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 15 endpoint(s) beneath base path '/actuator'
+?[0m?[0;34m2024-04-23 08:08:24.105  INFO 13844 --- [    Test worker] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 28852 (http) with context path '/api'
+?[0m?[0;34m2024-04-23 08:08:24.127  INFO 13844 --- [    Test worker] DroneMed.DroneMedicationAPIApplication   : Started DroneMedicationAPIApplication in 11.036 seconds (JVM running for 13.484)
+?[0;34m2024-04-23 08:08:24.633  INFO 13844 --- [io-28852-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/api]    : Initializing Spring DispatcherServlet 'dispatcherServlet'
+?[0m?[0;34m2024-04-23 08:08:24.634  INFO 13844 --- [io-28852-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+?[0m?[0;34m2024-04-23 08:08:24.638  INFO 13844 --- [io-28852-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
 ?[0m?[1;31m
 Start test 2?[0m
 ?[1;31m
@@ -59,80 +58,48 @@ Start test 9?[0m
 Start test 10?[0m
 ?[1;31m
 Start test 11?[0m
+?[0;34mFirst saved =DroneMed.models.DroneDispatch@2fe09719
+?[0m?[0;34mdroneDispatchedStateTask called
 ?[1;31m
 Start test 12?[0m
+?[0;34mTimestamp 2024-04-23 08:08:25.5024294 Drone S001 with a battery level of 10000 amps is on a medication delivery.
+?[0m?[0;34mlogInfo1 = Timestamp 2024-04-23 08:08:25.5084327 Drone S001 with a battery level of 10000 amps is on medication delivery.
+?[0m?[0;34mCurrent Path: D:\JetBrainsWork\Drone Medication API\Drone Medication API\task
+?[0m?[0;34mdata = Timestamp 2024-04-23 08:08:25.5084327 Drone S001 with a battery level of 10000 amps is on medication delivery.
+?[0m?[0;34mfile = log\dispatchlog.txt
 ?[1;31m
 Start test 13?[0m
+?[0m?[0;34mlogInfo2 = Timestamp 2024-04-23 08:08:40.5403426 Drone S001 delivery is complete! battery level 9850amps, drone returning to base.
+?[0m?[0;34mCurrent Path: D:\JetBrainsWork\Drone Medication API\Drone Medication API\task
+?[0m?[0;34mdata = Timestamp 2024-04-23 08:08:40.5403426 Drone S001 delivery is complete! battery level 9850amps, drone returning to base.
+?[0m?[0;34mfile = log\dispatchlog.txt
 ?[1;31m
 Start test 14?[0m
+?[0;34mCurrent Path: D:\JetBrainsWork\Drone Medication API\Drone Medication API\task
+?[0m?[0;34mdata = Timestamp 2024-04-23 08:08:55.5673378 Drone S001 has arrived at the base, battery level 9700
+?[0m?[0;34mfile = log\dispatchlog.txt
 ?[1;31m
 Start test 15?[0m
+?[0;34mFirst saved =DroneMed.models.DroneDispatch@19a8ba49
+?[0m?[0;34mdroneDispatchedStateTask called
 ?[1;31m
 Start test 16?[0m
+?[0;34mTimestamp 2024-04-23 08:08:56.6102184 Drone S002 with a battery level of 15000 amps is on a medication delivery.
+?[0m?[0;34mlogInfo1 = Timestamp 2024-04-23 08:08:56.6102184 Drone S002 with a battery level of 15000 amps is on medication delivery.
+?[0m?[0;34mCurrent Path: D:\JetBrainsWork\Drone Medication API\Drone Medication API\task
+?[0m?[0;34mdata = Timestamp 2024-04-23 08:08:56.6102184 Drone S002 with a battery level of 15000 amps is on medication delivery.
+?[0m?[0;34mfile = log\dispatchlog.txt
 ?[1;31m
 Start test 17?[0m
+?[0m?[0;34mlogInfo2 = Timestamp 2024-04-23 08:09:16.6273522 Drone S002 delivery is complete! battery level 14800amps, drone returning to base.
+?[0m?[0;34mCurrent Path: D:\JetBrainsWork\Drone Medication API\Drone Medication API\task
+?[0m?[0;34mdata = Timestamp 2024-04-23 08:09:16.6273522 Drone S002 delivery is complete! battery level 14800amps, drone returning to base.
+?[0m?[0;34mfile = log\dispatchlog.txt
 ?[1;31m
 Start test 18?[0m
-?[1;31m
-Start test 19?[0m
-?[1;31m
-Start test 20?[0m
-?[1;31m
-Start test 21?[0m
-?[1;31m
-Start test 22?[0m
-?[1;31m
-Start test 23?[0m
-?[1;31m
-Start test 24?[0m
-?[1;31m
-Start test 25?[0m
-?[1;31m
-Start test 26?[0m
-?[1;31m
-Start test 27?[0m
-?[1;31m
-Start test 28?[0m
-?[1;31m
-Start test 29?[0m
-?[1;31m
-Start test 30?[0m
-?[1;31m
-Start test 31?[0m
-?[1;31m
-Start test 32?[0m
-?[1;31m
-Start test 33?[0m
-?[1;31m
-Start test 34?[0m
-?[1;31m
-Start test 35?[0m
-?[1;31m
-Start test 36?[0m
-?[1;31m
-Start test 37?[0m
-?[1;31m
-Start test 38?[0m
-?[1;31m
-Start test 39?[0m
-?[1;31m
-Start test 40?[0m
-?[1;31m
-Start test 41?[0m
-?[1;31m
-Start test 42?[0m
-?[1;31m
-Start test 43?[0m
-?[1;31m
-Start test 44?[0m
-?[1;31m
-Start test 45?[0m
-?[1;31m
-Start test 46?[0m
-?[1;31m
-Start test 47?[0m
-?[1;31m
-Start test 48?[0m
+?[0;34mCurrent Path: D:\JetBrainsWork\Drone Medication API\Drone Medication API\task
+?[0m?[0;34mdata = Timestamp 2024-04-23 08:09:36.6476687 Drone S002 has arrived at the base, battery level 14600
+?[0m?[0;34mfile = log\dispatchlog.txt
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

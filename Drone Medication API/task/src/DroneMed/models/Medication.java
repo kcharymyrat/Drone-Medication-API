@@ -1,7 +1,6 @@
 package DroneMed.models;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 @Entity
@@ -10,19 +9,25 @@ public class Medication {
     private String code;
     @NotNull
     private String name;
+
     @NotNull
     private int weight;
-    @NotNull
+
     private String imageURL;
+
+    @ManyToOne
+    @JoinColumn(name = "dispatchId")
+    private  DroneDispatch droneDispatch;
 
     public Medication() {
     }
 
-    public Medication(String code, String name, int weight, String imageURL) {
+    public Medication(String code, String name, int weight, String imageURL, DroneDispatch droneDispatch) {
         this.code = code;
         this.name = name;
         this.weight = weight;
         this.imageURL = imageURL;
+        this.droneDispatch = droneDispatch;
     }
 
     public String getCode() {
@@ -55,6 +60,14 @@ public class Medication {
 
     public void setImageURL(String imageURL) {
         this.imageURL = imageURL;
+    }
+
+    public DroneDispatch getDroneDispatch() {
+        return droneDispatch;
+    }
+
+    public void setDroneDispatch(DroneDispatch droneDispatch) {
+        this.droneDispatch = droneDispatch;
     }
 
     @Override

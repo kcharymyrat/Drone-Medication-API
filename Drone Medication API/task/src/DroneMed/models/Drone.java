@@ -18,7 +18,7 @@ public class Drone {
     private int batteryCapacity;
     @NotNull
     @Enumerated(EnumType.STRING)
-    private DroneState State;
+    private DroneState state;
     @NotNull
     @Enumerated(EnumType.STRING)
     private DroneModel model;
@@ -41,7 +41,7 @@ public class Drone {
         this.maxWeight = maxWeight;
         this.currentWeight = currentWeight;
         this.batteryCapacity = batteryCapacity;
-        this.State = state;
+        this.state = state;
         this.model = model;
         this.currentCoordinate = currentCoordinate;
     }
@@ -79,11 +79,11 @@ public class Drone {
     }
 
     public DroneState getState() {
-        return State;
+        return state;
     }
 
     public void setState(DroneState state) {
-        this.State = state;
+        this.state = state;
     }
 
     public DroneModel getModel() {

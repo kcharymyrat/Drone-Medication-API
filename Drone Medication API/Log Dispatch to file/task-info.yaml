@@ -19,711 +19,6 @@ files:
       
       }
     learner_created: false
-  - name: src/DroneMed/Runner.java
-    visible: true
-    text: |
-      package DroneMed;
-      
-      import DroneMed.models.Drone;
-      import DroneMed.models.Medication;
-      import DroneMed.models.UserAccount;
-      import DroneMed.service.DroneService;
-      import DroneMed.service.MedicationService;
-      import DroneMed.service.UserService;
-      import org.springframework.boot.CommandLineRunner;
-      import org.springframework.stereotype.Component;
-      
-      import java.util.List;
-      import java.util.Optional;
-      import java.util.Scanner;
-      import java.util.Stack;
-      
-      @Component
-      public class Runner implements CommandLineRunner {
-      
-          private final DroneService droneService;
-      
-          private final MedicationService medicationService;
-      
-          private final UserService userService;
-      
-          private final String INVALID_RESPONSE = "Invalid response, please enter a valid response.";
-          private final String INVALID_DRONE_PARAM = "The parameters you entered are not valid drone parameters, please enter a valid drone parameter.";
-          private final String INVALID_MED_PARAM = "The parameters you entered are not valid medication parameters, please enter a valid medication parameter.";
-          private final String INVALID_USER_PARAM = "The parameters you entered are not valid userAccounts parameters, please enter a valid userAccounts parameter.";
-      
-          public Runner(DroneService droneService, MedicationService medicationService, UserService userService) {
-              this.droneService = droneService;
-              this.medicationService = medicationService;
-              this.userService = userService;
-          }
-      
-          @Override
-          public void run(String... args) throws Exception {
-              Scanner scanner = new Scanner(System.in);
-              System.out.println("Enter instruction for drone medication API...");
-              int response = 0;
-              lastResponse = response;
-              currentAction = Action.DEFAULT;
-              currentMode = Mode.DEFAULT;
-              availableOptions = 4;
-              System.out.println(options[response]);
-      
-              while (running) {
-      
-                  //We expect int response
-                  if (currentMode == Mode.DEFAULT) {
-                      try {
-                          response = scanner.nextInt();
-                          if(currentAction == Action.DEFAULT && (response < BASE_OPTION || response > availableOptions)) {
-                              System.out.println(INVALID_RESPONSE);
-                              response = lastResponse; //reset response to default;
-                          }
-                          else if(currentAction != Action.DEFAULT && (response < BASE_OPTION || response > availableOptions)) {
-                              System.out.println(INVALID_RESPONSE);
-                              response = lastResponse; //reset response to default;
-                          }
-                          else response = processResponse(response, "");
-                      }
-                      catch (Exception e) {
-                          System.out.println(INVALID_RESPONSE);
-                          scanner.nextLine(); //this is to consume the invalid response
-                      }
-      
-                  }
-                  else {
-                      //We expect string response
-                      String info = scanner.nextLine();
-      
-                      if(processOptionsB(info)) {
-                          response = processResponse(lastResponse, info);
-                      }
-                  }
-      
-                  if(currentMode == Mode.DEFAULT) {
-                      System.out.println(options[response]);
-                  }
-              }
-      
-              scanner.close();
-          }
-      
-          public enum Action {
-              DEFAULT,
-              DRONES,
-              MEDICATIONS,
-              USERACCOUNTS
-          }
-      
-          public enum Mode {
-              DEFAULT,
-              DETAILS,
-              UPDATES,
-          }
-      
-      
-      
-          String[] options = new String[]{
-                  """
-                  1. Drones
-                  2. Medications
-                  3. UserAccounts
-                  4. Exit""",
-                  """
-                  1. View Drones
-                  2. Create Drone
-                  3. Update Drone
-                  4. Delete Drone
-                  5. Get Drone
-                  6. Back""",
-                  """
-                  1. View Medications
-                  2. Create Medication
-                  3. Update Medication
-                  4. Delete Medication
-                  5. Get Medication
-                  6. Back""",
-                  """
-                  1. View UserAccounts
-                  2. Create UserAccount
-                  3. Update UserAccount
-                  4. Delete UserAccount
-                  5. Get UserAccount
-                  6. Back"""
-          };
-      
-          Action currentAction;
-      
-          Mode currentMode;
-      
-          //Stack<Action> lastAction = new Stack();
-      
-          //To keep response backstack
-          Stack<Integer> stack = new Stack();
-      
-          //flag to exist app
-          boolean running = true;
-      
-          //User Response
-          int lastResponse;
-      
-          int availableOptions = 0;
-          final int BASE_OPTION = 1;
-      
-          private Optional<Drone> buildDrone(String[] values) {
-      
-              try {
-                  Drone drone = Drone.builder()
-                          .serialNumber(values[0].trim())
-                          .maxWeight(Integer.parseInt(values[1].trim()))
-                          .currentWeight(Integer.parseInt(values[2].trim()))
-                          .batteryCapacity(Integer.parseInt(values[3].trim()))
-                          .state(Drone.State.valueOf(values[4].trim()))
-                          .model(Drone.Model.valueOf(values[5].trim()))
-                          .currentCoordinate(values[6].trim())
-                          .build();
-      
-                  return Optional.ofNullable(drone);
-              } catch (Exception e) {
-                  System.out.println(INVALID_DRONE_PARAM);
-              }
-      
-              return Optional.ofNullable(null);
-          }
-      
-          private Optional<Medication> buildMedication(String[] values) {
-      
-              try {
-                  Medication medication = Medication.builder()
-                          .code(values[0].trim())
-                          .name(values[1].trim())
-                          .weight(Integer.parseInt(values[2].trim()))
-                          .imageURL(values[3].trim())
-                          .build();
-      
-                  return Optional.ofNullable(medication);
-              } catch (Exception e) {
-                  System.out.println(INVALID_MED_PARAM);
-              }
-      
-              return Optional.ofNullable(null);
-          }
-      
-          private Optional<UserAccount> buildUserAccounts(String[] values) {
-      
-              try {
-                  UserAccount userAccount = UserAccount.builder()
-                          .account(UserAccount.Account.valueOf(values[0].trim()))
-                          .name(values[1].trim())
-                          .phoneNumber(values[2].trim())
-                          .address(values[3].trim())
-                          .gpsCoordinate(values[4].trim())
-                          .build();
-      
-                  return Optional.ofNullable(userAccount);
-              } catch (Exception e) {
-                  System.out.println(INVALID_USER_PARAM);
-              }
-      
-              return Optional.ofNullable(null);
-          }
-      
-      
-          private int processResponse(int res, String info) {
-      
-              int value = res;
-              //lastResponse = res;
-      
-              if(currentAction == Action.DEFAULT) {
-                  if(value == 4) {
-                      System.exit(0);
-                  }
-                  else if (value >= 1 && value <= 4) {
-                      //Set Action
-                      if(value == 0) currentAction = Action.DEFAULT;
-                      else if(value == 1) currentAction = Action.DRONES;
-                      else if(value == 2) currentAction = Action.MEDICATIONS;
-                      else if(value == 3) currentAction = Action.USERACCOUNTS;
-      
-                      if(stack.size() < 1)  stack.push(0);
-                      lastResponse = value;
-                      availableOptions = 6;
-                      return value;
-                  }
-                  else {
-                      System.out.println(INVALID_RESPONSE);
-                      return  lastResponse;
-                  }
-              }
-              else if(currentAction == Action.DRONES && currentMode == Mode.DEFAULT) {
-                  if(value == 6) {
-                      currentAction = Action.DEFAULT;
-                      availableOptions = 4;
-                      return stack.pop();
-                  }
-                  else if (value >= 1 && value <= 5) {
-                      if(stack.size() < 2) stack.push(1);
-                      DroneProcessor(value, info);
-                      lastResponse = value;
-                      return value;
-                  }
-                  else {
-                      System.out.println(INVALID_RESPONSE);
-                      return  lastResponse;
-                  }
-              }
-              else if(currentAction == Action.MEDICATIONS && currentMode == Mode.DEFAULT) {
-                  if(value == 6) {
-                      currentAction = Action.DEFAULT;
-                      availableOptions = 4;
-                      return stack.pop();
-                  }
-                  else if (value >= 1 && value <= 5) {
-                      if(stack.size() < 2)  stack.push(2);
-                      MedicationProcessor(value, info);
-                      lastResponse = value;
-                      return value;
-                  }
-                  else {
-                      System.out.println(INVALID_RESPONSE);
-                      return  lastResponse;
-                  }
-              }
-              else if(currentAction == Action.USERACCOUNTS && currentMode == Mode.DEFAULT) {
-                  if(value == 6) {
-                      currentAction = Action.DEFAULT;
-                      availableOptions = 4;
-                      return stack.pop();
-                  }
-                  else if (value >= 1 && value <= 5) {
-                      if(stack.size() < 2)  stack.push(3);
-                      UserAccountProcessor(value, info);
-                      lastResponse = value;
-                      return value;
-                  }
-                  else {
-                      System.out.println(INVALID_RESPONSE);
-                      return  lastResponse;
-                  }
-              }
-              else if(currentMode == Mode.DETAILS ) {
-                  if(value == 1 || info.equals("1")) {
-                      availableOptions = 6;
-                      currentMode = Mode.DEFAULT;
-                      lastResponse = stack.peek();
-                      return stack.pop();
-                  }
-                  else if(value == 2) {
-                      if(currentAction == Action.DRONES) {
-                          if(lastResponse == 2 || lastResponse == 3) {
-                              DroneProcessor(2, "");
-                          }
-                          else   DroneProcessor(lastResponse, "");
-                      }
-                      else if(currentAction == Action.MEDICATIONS) {
-                          if(lastResponse == 2 || lastResponse == 3) {
-                              MedicationProcessor(2, "");
-                          }
-                          else MedicationProcessor(lastResponse, "");
-                      }
-                      else if(currentAction == Action.USERACCOUNTS) {
-                          if(lastResponse == 2 || lastResponse == 3) {
-                              UserAccountProcessor(2, "");
-                          }
-                          else UserAccountProcessor(lastResponse, "");
-                      }
-                  }
-                  else if(checkValidInt(info) && info.equals("2")) {
-                      if(currentAction == Action.DRONES) {
-                          DroneProcessor(lastResponse, info);
-                      }
-                      else if(currentAction == Action.MEDICATIONS) {
-                          MedicationProcessor(lastResponse, info);
-                      }
-                      else if(currentAction == Action.USERACCOUNTS) {
-                          UserAccountProcessor(lastResponse, info);
-                      }
-                  }
-                  else {
-                      System.out.println(INVALID_RESPONSE);
-                      return  lastResponse;
-                  }
-              }
-              else if(currentMode == Mode.UPDATES) {
-                  //Check if back was clicked
-                  if(checkValidInt(info) && Integer.parseInt(info) == 1) {
-                      currentMode = Mode.DEFAULT;
-                      availableOptions = 6;
-                      lastResponse = stack.peek();
-                      return stack.pop();
-                  }
-      
-                  //String[] values = info.replaceAll("\\s+", "").split(",");
-                  String[] values = info.trim().split(",");
-      
-                  availableOptions = 2;
-      
-                  //Create and update
-                  if(value == 2 || value == 3) {
-                      if(currentAction == Action.DRONES) {
-                          if(values.length == 0 || values.length != 7) {
-                              System.out.println(INVALID_DRONE_PARAM);
-                          }
-                          else if( value == 2) {
-                              Optional<Drone> drone = buildDrone(values);
-                              if (drone.isPresent()) {
-                                  String response = droneService.createDrone(drone.get());
-                                  System.out.println("Create Drones" + "\n" + "1. Back" + "\n" + "2. Create more Drones");
-                                  System.out.println(response);
-                                  currentMode = Mode.DETAILS;
-                              }
-                          }
-                          else if( value == 3) {
-                              Optional<Drone> drone = buildDrone(values);
-                              if (drone.isPresent()) {
-                                  String response = droneService.updateDrone(drone.get());
-                                  System.out.println("Updated Drone" + "\n" + "1. Back" + "\n" + "2. Update more Drones");
-                                  System.out.println(response);
-                                  currentMode = Mode.DETAILS;
-                              }
-                          }
-                      }
-                      else if(currentAction == Action.MEDICATIONS) {
-                          if(values.length == 0 || values.length != 4) {
-                              System.out.println(INVALID_MED_PARAM);
-                          }
-                          else if( value == 2) {
-                              Optional<Medication> medication = buildMedication(values);
-                              if (medication.isPresent()) {
-                                  String response = medicationService.createMedication(medication.get());
-                                  System.out.println("Create medications" + "\n" + "1. Back" + "\n" + "2. Create more medications");
-                                  System.out.println(response);
-                                  currentMode = Mode.DETAILS;
-                              }
-                          }
-                          else if( value == 3) {
-                              Optional<Medication> medication = buildMedication(values);
-                              if (medication.isPresent()) {
-                                  String response = medicationService.updateMedication(medication.get());
-                                  System.out.println("Updated medications" + "\n" + "1. Back" + "\n" + "2. Update more medications");
-                                  System.out.println(response);
-                                  currentMode = Mode.DETAILS;
-                              }
-                          }
-                      }
-                      else if(currentAction == Action.USERACCOUNTS) {
-                          if(values.length == 0 || values.length != 5) {
-                              System.out.println(INVALID_USER_PARAM);
-                          }
-                          else if( value == 2) {
-                              Optional<UserAccount> userAccount = buildUserAccounts(values);
-                              if (userAccount.isPresent()) {
-                                  String response = userService.createUser(userAccount.get());
-                                  System.out.println("Create userAccounts" + "\n" + "1. Back" + "\n" + "2. Create more userAccounts");
-                                  System.out.println(response);
-                                  currentMode = Mode.DETAILS;
-                              }
-                          }
-                          else if( value == 3) {
-                              Optional<UserAccount> userAccount = buildUserAccounts(values);
-                              if (userAccount.isPresent()) {
-                                  String response = userService.updateUser(userAccount.get());
-                                  System.out.println("Updated userAccounts" + "\n" + "1. Back" + "\n" + "2. Update more userAccounts");
-                                  System.out.println(response);
-                                  currentMode = Mode.DETAILS;
-                              }
-                          }
-                      }
-                  } else if (value == 4 || value == 5) {
-                      if(currentAction == Action.DRONES) {
-                          if( value == 4) {
-      
-                              String response = droneService.deleteDrone(values[0]);
-                              System.out.println("Delete Drones" + "\n" + "1. Back" + "\n" + "2. Delete more Drones");
-                              System.out.println(response);
-                              // if(!response.endsWith("not found.")) {
-                              currentMode = Mode.DETAILS;
-                              //}
-      
-      
-                          }
-                          else if( value == 5) {
-                              Optional<Drone> drone = droneService.getDrone(values[0]);
-                              System.out.println("Get Drone" + "\n" + "1. Back" + "\n" + "2. Get more Drones");
-                              if(drone.isPresent()) {
-                                  System.out.println(drone.get().toString());
-                              }
-                              else System.out.println("Drone with serial number " + values[0] + " not found.");
-                              currentMode = Mode.DETAILS;
-                          }
-                      }
-                      else if(currentAction == Action.MEDICATIONS) {
-                          if( value == 4) {
-      
-                              String response = medicationService.deleteMedication(values[0]);
-                              System.out.println("Delete medications" + "\n" + "1. Back" + "\n" + "2. Delete more medications");
-                              System.out.println(response);
-                              currentMode = Mode.DETAILS;
-      
-                          }
-                          else if( value == 5) {
-                              Optional<Medication> medication = medicationService.getMedication(values[0]);
-                              System.out.println("Get medications" + "\n" + "1. Back" + "\n" + "2. Get more medications");
-                              if(medication.isPresent()) {
-                                  System.out.println(medication.get().toString());
-                              }
-                              else System.out.println("Medication with code " + values[0] + " not found.");
-                              currentMode = Mode.DETAILS;
-                          }
-                      }
-                      else if(currentAction == Action.USERACCOUNTS) {
-                          if( value == 4) {
-      
-                              String response =  userService.deleteUser(values[0]);
-                              System.out.println("Delete userAccounts" + "\n" + "1. Back" + "\n" + "2. Delete more userAccounts");
-                              System.out.println(response);
-                              currentMode = Mode.DETAILS;
-      
-                          }
-                          else if( value == 5) {
-                              Optional<UserAccount> userAccount =  userService.getUser(values[0]);
-                              System.out.println("Get userAccounts" + "\n" + "1. Back" + "\n" + "2. Get more userAccounts");
-                              if(userAccount.isPresent()) {
-                                  System.out.println(userAccount.get().toString());
-                              }
-                              else System.out.println("UserAccount with phone number " + values[0] + " not found.");
-                              currentMode = Mode.DETAILS;
-                          }
-                      }
-                  }
-      
-                  return lastResponse;
-              }
-      
-      
-      
-              return  0;
-          }
-      
-          private boolean checkValidInt(String s) {
-              try {
-                  if(s.length() > 1) return false;
-                  int number = Integer.parseInt(s);
-                  return true;
-              } catch (NumberFormatException e) {
-                  return false;
-              }
-          }
-      
-          private void UserAccountProcessor(int option, String info) {
-              availableOptions = 1;
-              if(option == 1) {
-      
-                  System.out.println("View UserAccounts" + "\n" + "1. Back");
-                  currentMode = Mode.DETAILS;
-                  List<UserAccount> userAccounts = userService.getAllUsers();
-      
-                  if(userAccounts.isEmpty()) System.out.println("The UserAccounts list is empty.");
-                  else {
-                      System.out.println("UserAccounts list");
-                      for (int i=0; i < userAccounts.size(); i++) {
-                          System.out.println(i + 1  + ". " + userAccounts.get(i).toString());
-                      }
-                  }
-              }
-              else if(option == 2) {
-                  System.out.println("Create UserAccount" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-                  System.out.println("Enter new UserAccount information...." + "\n" + "User accountType, name, phoneNumber, address, gps coordinates ");
-      
-              }
-              else if(option == 3) {
-                  System.out.println("Update UserAccount" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  List<UserAccount> userAccounts = userService.getAllUsers();
-      
-                  if(userAccounts.isEmpty()) System.out.println("The UserAccounts list is empty.");
-                  else {
-                      System.out.println("UserAccounts list");
-                      for (int i=0; i < userAccounts.size(); i++) {
-                          System.out.println(i + 1  + ". " + userAccounts.get(i).toString());
-                      }
-      
-                      System.out.println("Enter UserAccount ID to update...." + "\n" + "User accountType, name, phoneNumber, address, gps coordinates  ");
-                  }
-              }
-              else if(option == 4) {
-                  System.out.println("Delete UserAccount" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-                  List<UserAccount> userAccounts = userService.getAllUsers();
-      
-                  if(userAccounts.isEmpty()) System.out.println("The UserAccounts list is empty.");
-                  else {
-                      System.out.println("UserAccounts list");
-                      for (int i=0; i < userAccounts.size(); i++) {
-                          System.out.println(i + 1  + ". " + userAccounts.get(i).toString());
-                      }
-      
-                      System.out.println("Enter UserAccount ID to Delete...");
-                  }
-              }
-              else if(option == 5) {
-                  System.out.println("Get UserAccount" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-                  System.out.println("Enter the UserAccount ID that you want to retrieve.");
-              }
-          }
-      
-          private void MedicationProcessor(int option, String info) {
-              availableOptions = 1;
-              if(option == 1) {
-                  System.out.println("View medications" + "\n" + "1. Back");
-                  currentMode = Mode.DETAILS;
-                  List<Medication> medications = medicationService.getAllMedication();
-      
-                  if(medications.isEmpty()) System.out.println("The medication list is empty.");
-                  else {
-                      System.out.println("Medications list");
-                      for (int i=0; i < medications.size(); i++) {
-                          System.out.println(i + 1  + ". " + medications.get(i).toString());
-                      }
-                  }
-              }
-              else if(option == 2) {
-                  System.out.println("Create medications" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  System.out.println("Enter new medication information...." + "\n" + "medication code, name, weight, imageURL ");
-      
-              }
-              else if(option == 3) {
-                  System.out.println("Update medications" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  List<Medication> medications = medicationService.getAllMedication();
-      
-                  if(medications.isEmpty()) System.out.println("The medications list is empty.");
-                  else {
-                      System.out.println("Medications list");
-                      for (int i=0; i < medications.size(); i++) {
-                          System.out.println(i + 1  + ". " + medications.get(i).toString());
-                      }
-      
-                      System.out.println("Enter medication ID to update...." + "\n" + "medication code, name, weight, imageURL ");
-                  }
-              }
-              else if(option == 4) {
-                  System.out.println("Delete medications" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  List<Medication> medications = medicationService.getAllMedication();
-      
-                  if(medications.isEmpty()) System.out.println("The medications list is empty.");
-                  else {
-                      System.out.println("Medications list");
-                      for (int i=0; i < medications.size(); i++) {
-                          System.out.println(i + 1  + ". " + medications.get(i).toString());
-                      }
-      
-                      System.out.println("Enter medication ID to Delete...");
-                  }
-              }
-              else if(option == 5) {
-                  System.out.println("Get medications" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  System.out.println("Enter the medication ID that you want to retrieve.");
-              }
-          }
-      
-          private void DroneProcessor(int option, String info) {
-              availableOptions = 1;
-              if(option == 1) {
-      
-                  System.out.println("View drones" + "\n" + "1. Back");
-                  currentMode = Mode.DETAILS;
-                  List<Drone> drones = droneService.getAllDrones();
-      
-                  if(drones.isEmpty()) System.out.println("The drone list is empty.");
-                  else {
-                      System.out.println("Drones list");
-                      for (int i=0; i < drones.size(); i++) {
-                          System.out.println(i + 1  + ". " + drones.get(i).toString());
-                      }
-                  }
-              }
-              else if(option == 2) {
-                  System.out.println("Create drones" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  System.out.println("Enter new drone information...." + "\n" + "Serial Number, Max Weight, CurrentWeight, Battery Capacity, Drone State, Drone Model, GPS Coordinates");
-      
-              }
-              else if(option == 3) {
-                  System.out.println("Update drones" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  List<Drone> drones = droneService.getAllDrones();
-      
-                  if(drones.isEmpty()) System.out.println("The drones list is empty.");
-                  else {
-                      System.out.println("Drones list");
-                      for (int i=0; i < drones.size(); i++) {
-                          System.out.println(i + 1  + ". " + drones.get(i).toString());
-                      }
-      
-                      System.out.println("Enter drone ID to update...." + "\n" + "Serial Number, Max Weight, CurrentWeight, Battery Capacity, Drone State, Drone Model, GPS Coordinates ");
-                  }
-              }
-              else if(option == 4) {
-                  System.out.println("Delete drones" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  List<Drone> drones = droneService.getAllDrones();
-      
-                  if(drones.isEmpty()) System.out.println("The drones list is empty.");
-                  else {
-                      System.out.println("Drones list");
-                      for (int i=0; i < drones.size(); i++) {
-                          System.out.println(i + 1  + ". " + drones.get(i).toString());
-                      }
-      
-                      System.out.println("Enter drone ID to Delete....");
-                  }
-              }
-              else if(option == 5) {
-                  System.out.println("Get drones" + "\n" + "1. Back");
-                  currentMode = Mode.UPDATES;
-      
-                  System.out.println("Enter drone the ID that you want to retrieve.");
-              }
-          }
-      
-      
-          private boolean processOptionsB(String info) {
-      
-              if(info.length() > 0 && currentMode == Mode.DETAILS && availableOptions == 1 && !info.equals("1")) {
-                  System.out.println(INVALID_RESPONSE);
-                  return false;
-              }
-              else if(info.length() > 0 && currentMode == Mode.DETAILS && availableOptions == 2 && !info.equals("1") && !info.equals("2")) {
-                  System.out.println(INVALID_RESPONSE);
-                  return false;
-              }
-              else if(info.length() > 0 && currentMode == Mode.UPDATES && info.length() == 1 && availableOptions == 2 && !info.equals("1") && !info.equals("2")) {
-                  System.out.println(INVALID_RESPONSE);
-                  return false;
-              }
-              else if(info.length() > 0 && currentMode == Mode.UPDATES && info.length() == 1 && availableOptions == 1 && !info.equals("1")) {
-                  System.out.println(INVALID_RESPONSE);
-                  return false;
-              }
-      
-              return info.length() > 0;
-          }
-      }
-    learner_created: false
   - name: src/resources/application.properties
     visible: true
     text: |-
@@ -1341,6 +636,1453 @@ files:
       
       }
     learner_created: false
+  - name: src/DroneMed/models/UserAccount.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      import javax.persistence.Entity;
+      import javax.persistence.EnumType;
+      import javax.persistence.Enumerated;
+      import javax.persistence.Id;
+      import javax.validation.constraints.NotNull;
+      
+      @Entity
+      public class UserAccount {
+      
+          @NotNull
+          @Enumerated(EnumType.STRING)
+          private Account account;
+      
+          @NotNull
+          private String name;
+      
+          @Id
+          private String phoneNumber;
+      
+          @NotNull
+          private String address;
+      
+          @NotNull
+          private String gpsCoordinate;
+      
+          public UserAccount() {
+          }
+      
+          public UserAccount(Account account, String name, String phoneNumber, String address, String gpsCoordinate) {
+              this.account = account;
+              this.name = name;
+              this.phoneNumber = phoneNumber;
+              this.address = address;
+              this.gpsCoordinate = gpsCoordinate;
+          }
+      
+          public String getName() {
+              return name;
+          }
+      
+          public void setName(String name) {
+              this.name = name;
+          }
+      
+          public String getPhoneNumber() {
+              return phoneNumber;
+          }
+      
+          public void setPhoneNumber(String phoneNumber) {
+              this.phoneNumber = phoneNumber;
+          }
+      
+          public String getAddress() {
+              return address;
+          }
+      
+          public void setAddress(String address) {
+              this.address = address;
+          }
+      
+          public String getGpsCoordinate() {
+              return gpsCoordinate;
+          }
+      
+          public void setGpsCoordinate(String gpsCoordinate) {
+              this.gpsCoordinate = gpsCoordinate;
+          }
+      
+          public Account getAccount() {
+              return account;
+          }
+      
+          public void setAccount(Account account) {
+              this.account = account;
+          }
+      
+          @Override
+          public String toString() {
+              return "UserAccount name: " + this.getName()+ " phoneNumber: " + this.getPhoneNumber() + " address: " + this.getAddress() + " account: " + this.getAccount();
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/repositories/DroneRepository.java
+    visible: true
+    text: |
+      package DroneMed.repositories;
+      
+      import DroneMed.models.Drone;
+      import DroneMed.models.DroneModel;
+      import DroneMed.models.DroneState;
+      import org.springframework.data.jpa.repository.JpaRepository;
+      import org.springframework.data.repository.CrudRepository;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      public interface DroneRepository extends JpaRepository<Drone, String> {
+          Drone findBySerialNumber(String serialNumber);
+          List<Optional<Drone>> findDronesByModel(DroneModel model);
+          List<Optional<Drone>> findDronesByState(DroneState state);
+          List<Optional<Drone>> findDronesByBatteryCapacityAfter(int percentage);
+      }
+    learner_created: true
+  - name: src/DroneMed/controllers/MedicationController.java
+    visible: true
+    text: |
+      package DroneMed.controllers;
+      
+      import DroneMed.models.Medication;
+      import DroneMed.models.MedicationDTO;
+      import DroneMed.responses.ResponseHandler;
+      import DroneMed.services.MedicationService;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.http.HttpStatus;
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.*;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      @RestController
+      @RequestMapping("/medications")
+      public class MedicationController {
+      
+          private final MedicationService medicationService;
+      
+          @Autowired
+          public MedicationController(MedicationService medicationService) {
+              this.medicationService = medicationService;
+          }
+      
+          @PostMapping("/create_medication")
+          public ResponseEntity<?> createMedication(@RequestBody Medication medication) {
+              String res = medicationService.createMedication(medication);
+              return ResponseHandler.responseBuilder(res, HttpStatus.OK);
+          }
+      
+          @PostMapping("/create_medications")
+          public ResponseEntity<?> createMedications(@RequestBody List<Medication> medications) {
+              List<String> res = medicationService.createMedications(medications);
+              return ResponseHandler.responseBuilder("Medications created successfully.", HttpStatus.OK, res);
+          }
+      
+          @PutMapping("/update_medication")
+          public ResponseEntity<?> updateMedication(@RequestBody Medication medication) {
+              String res = medicationService.updateMedication(medication);
+              if(res.contains("not found.")) {
+                  return ResponseHandler.responseBuilder(res, HttpStatus.NOT_FOUND);
+              }
+              return ResponseHandler.responseBuilder(res, HttpStatus.OK);
+          }
+      
+          @DeleteMapping("/delete_medication/{code}")
+          public ResponseEntity<?> deleteMedication(@PathVariable String code) {
+              String res = medicationService.deleteMedication(code);
+              if(res.contains("not found.")) {
+                  return ResponseHandler.responseBuilder(res, HttpStatus.NOT_FOUND);
+              }
+              return ResponseHandler.responseBuilder(res, HttpStatus.OK);
+          }
+      
+          @GetMapping("/get_medication/{code}")
+          public ResponseEntity<?> getMedication(@PathVariable String code) {
+              Optional<Medication> medication = medicationService.getMedication(code);
+              if (medication.isPresent()) {
+                  return ResponseHandler.responseBuilder("Medication fetched successfully.", HttpStatus.OK, medication);
+              }
+              return ResponseHandler.responseBuilder(
+                      "The medication with code " + code + " was not found.", HttpStatus.NOT_FOUND
+              );
+          }
+      
+      
+          @GetMapping("/get_all_medications")
+          public ResponseEntity<?> getAllMedication() {
+              List<Medication> medications = medicationService.getAllMedication();
+              if(medications.isEmpty()) {
+                  return ResponseHandler.responseBuilder("The medication list is empty.", HttpStatus.OK);
+              }
+              return ResponseHandler.responseBuilder("All medications fetched successfully.", HttpStatus.OK, medications);
+          }
+      
+          @GetMapping("/get_by_name/{name}")
+          public ResponseEntity<?> getMedicationByName(@PathVariable String name) {
+              List<MedicationDTO> medication = medicationService.getMedicationByName(name);
+              if(medication.isEmpty()) {
+                  return ResponseHandler.responseBuilder("The medication list by name " + name + " is empty.", HttpStatus.OK);
+              }
+              return ResponseHandler.responseBuilder("Medications fetched successfully.", HttpStatus.OK, medication);
+          }
+      
+      }
+    learner_created: true
+  - name: src/DroneMed/models/MedicationDTO.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      public class MedicationDTO {
+          private String code;
+      
+          private String name;
+      
+          private int weight;
+      
+          private String imageURL;
+      
+          private long droneDispatchID;
+      
+          public MedicationDTO(
+                  String code,
+                  String name,
+                  int weight,
+                  String imageURL,
+                  long droneDispatchID
+          ) {
+              this.code = code;
+              this.name = name;
+              this.weight = weight;
+              this.imageURL = imageURL;
+              this.droneDispatchID = droneDispatchID;
+          }
+      
+          public String getCode() {
+              return code;
+          }
+      
+          public void setCode(String code) {
+              this.code = code;
+          }
+      
+          public String getName() {
+              return name;
+          }
+      
+          public void setName(String name) {
+              this.name = name;
+          }
+      
+          public int getWeight() {
+              return weight;
+          }
+      
+          public void setWeight(int weight) {
+              this.weight = weight;
+          }
+      
+          public String getImageURL() {
+              return imageURL;
+          }
+      
+          public void setImageURL(String imageURL) {
+              this.imageURL = imageURL;
+          }
+      
+          public long getDroneDispatchID() {
+              return droneDispatchID;
+          }
+      
+          public void setDroneDispatchID(long droneDispatchID) {
+              this.droneDispatchID = droneDispatchID;
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/services/DroneService.java
+    visible: true
+    text: |
+      package DroneMed.services;
+      
+      import DroneMed.models.DroneModel;
+      import DroneMed.models.DroneState;
+      import DroneMed.repositories.DroneRepository;
+      import DroneMed.models.Drone;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Service;
+      
+      import javax.transaction.Transactional;
+      import java.util.ArrayList;
+      import java.util.List;
+      import java.util.Optional;
+      
+      @Service
+      public class DroneService {
+          private final DroneRepository repository;
+      
+          @Autowired
+          public DroneService(DroneRepository repository) {
+              this.repository = repository;
+          }
+      
+          public List<Drone> getAllDrones() {
+              return (List<Drone>) repository.findAll();
+          }
+      
+          public String createDrone(Drone drone) {
+              try {
+                  repository.save(drone);
+                  return "The drone with serial number " + drone.getSerialNumber() + " was created successfully.";
+              } catch (Exception e) {
+                  return "The parameter you entered contains a null or invalid parameter, Please enter a valid drone parameter.";
+              }
+          }
+      
+          public String updateDrone(Drone drone) {
+              try {
+                  if (repository.findBySerialNumber(drone.getSerialNumber()) == null) {
+                      return "The drone with serial number " + drone.getSerialNumber() + " was not found.";
+                  }
+                  repository.save(drone);
+                  return "The drone with serial number " + drone.getSerialNumber() + " was updated successfully.";
+              } catch (Exception e) {
+                  return "The drone with serial number " + drone.getSerialNumber() + " was not found.";
+              }
+          }
+      
+          public String deleteDrone(String serialNumber) {
+              try {
+                  repository.delete(repository.findBySerialNumber(serialNumber));
+                  return "The drone with serial number "+ serialNumber + " was deleted Successfully.";
+              } catch (Exception e) {
+                  return "The drone with serial number " + serialNumber + " was not found.";
+              }
+          }
+      
+          public Drone getDrone(String serialNumber) {
+              return repository.findBySerialNumber(serialNumber);
+          }
+      
+          @Transactional
+          public List<String> createDrones(List<Drone> drones) {
+              List<String> res = new ArrayList<>();
+              for (Drone drone : drones) {
+                  res.add(createDrone(drone));
+              }
+              return res;
+          }
+      
+          public List<Optional<Drone>> findDroneByState(DroneState state) {
+              return repository.findDronesByState(state);
+          }
+      
+          public List<Optional<Drone>> findDronesByModel(DroneModel model) {
+              return repository.findDronesByModel(model);
+          }
+      
+          public List<Optional<Drone>> findDronesByBatteryCapacityAfter(int percentage) {
+              return repository.findDronesByBatteryCapacityAfter(percentage);
+          }
+      
+      }
+    learner_created: true
+  - name: src/DroneMed/models/Medication.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      import javax.persistence.*;
+      import javax.validation.constraints.NotNull;
+      
+      @Entity
+      public class Medication {
+          @Id
+          private String code;
+          @NotNull
+          private String name;
+      
+          @NotNull
+          private int weight;
+      
+          private String imageURL;
+      
+          @ManyToOne
+          @JoinColumn(name = "dispatchId")
+          private  DroneDispatch droneDispatch;
+      
+          public Medication() {
+          }
+      
+          public Medication(String code, String name, int weight, String imageURL, DroneDispatch droneDispatch) {
+              this.code = code;
+              this.name = name;
+              this.weight = weight;
+              this.imageURL = imageURL;
+              this.droneDispatch = droneDispatch;
+          }
+      
+          public String getCode() {
+              return code;
+          }
+      
+          public void setCode(String code) {
+              this.code = code;
+          }
+      
+          public String getName() {
+              return name;
+          }
+      
+          public void setName(String name) {
+              this.name = name;
+          }
+      
+          public int getWeight() {
+              return weight;
+          }
+      
+          public void setWeight(int weight) {
+              this.weight = weight;
+          }
+      
+          public String getImageURL() {
+              return imageURL;
+          }
+      
+          public void setImageURL(String imageURL) {
+              this.imageURL = imageURL;
+          }
+      
+          public DroneDispatch getDroneDispatch() {
+              return droneDispatch;
+          }
+      
+          public void setDroneDispatch(DroneDispatch droneDispatch) {
+              this.droneDispatch = droneDispatch;
+          }
+      
+          @Override
+          public String toString() {
+              return "Medication code: " + this.getCode() + " name: " + this.getName() + " Weight: " + this.getWeight() + " imageURL: " + this.getImageURL();
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/models/Drone.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      import javax.persistence.Entity;
+      import javax.persistence.EnumType;
+      import javax.persistence.Enumerated;
+      import javax.persistence.Id;
+      import javax.validation.constraints.NotNull;
+      
+      @Entity
+      public class Drone {
+          @Id
+          private String serialNumber;
+          @NotNull
+          private int maxWeight;
+          @NotNull
+          private int currentWeight;
+          @NotNull
+          private int batteryCapacity;
+          @NotNull
+          @Enumerated(EnumType.STRING)
+          private DroneState state;
+          @NotNull
+          @Enumerated(EnumType.STRING)
+          private DroneModel model;
+          @NotNull
+          private String currentCoordinate;
+      
+          public Drone() {
+          }
+      
+          public Drone(
+                  String serialNumber,
+                  int maxWeight,
+                  int currentWeight,
+                  int batteryCapacity,
+                  DroneState state,
+                  DroneModel model,
+                  String currentCoordinate
+          ) {
+              this.serialNumber = serialNumber;
+              this.maxWeight = maxWeight;
+              this.currentWeight = currentWeight;
+              this.batteryCapacity = batteryCapacity;
+              this.state = state;
+              this.model = model;
+              this.currentCoordinate = currentCoordinate;
+          }
+      
+          public String getSerialNumber() {
+              return serialNumber;
+          }
+      
+          public void setSerialNumber(String serialNumber) {
+              this.serialNumber = serialNumber;
+          }
+      
+          public int getMaxWeight() {
+              return maxWeight;
+          }
+      
+          public void setMaxWeight(int maxWeight) {
+              this.maxWeight = maxWeight;
+          }
+      
+          public int getCurrentWeight() {
+              return currentWeight;
+          }
+      
+          public void setCurrentWeight(int currentWeight) {
+              this.currentWeight = currentWeight;
+          }
+      
+          public int getBatteryCapacity() {
+              return batteryCapacity;
+          }
+      
+          public void setBatteryCapacity(int batteryCapacity) {
+              this.batteryCapacity = batteryCapacity;
+          }
+      
+          public DroneState getState() {
+              return state;
+          }
+      
+          public void setState(DroneState state) {
+              this.state = state;
+          }
+      
+          public DroneModel getModel() {
+              return model;
+          }
+      
+          public void setModel(DroneModel model) {
+              this.model = model;
+          }
+      
+          public String getCurrentCoordinate() {
+              return currentCoordinate;
+          }
+      
+          public void setCurrentCoordinate(String currentCoordinate) {
+              this.currentCoordinate = currentCoordinate;
+          }
+      
+          @Override
+          public String toString() {
+              return "Drone serialnumber: " + this.getSerialNumber() + " maxWeight: " + this.getMaxWeight() + " currentWeight: " + this.getCurrentWeight() + " batteryCapacity: " + this.getBatteryCapacity() +
+                      " State: " + this.getState() + " Model: " + this.model + " Coordinate: " + this.getCurrentCoordinate();
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/repositories/DroneDispatchRepository.java
+    visible: true
+    text: |
+      package DroneMed.repositories;
+      
+      import DroneMed.models.DroneDispatch;
+      import org.springframework.data.jpa.repository.JpaRepository;
+      import org.springframework.data.repository.CrudRepository;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      public interface DroneDispatchRepository extends JpaRepository<DroneDispatch, Long> {
+      }
+    learner_created: true
+  - name: src/DroneMed/mappers/DroneDispatchMapper.java
+    visible: true
+    text: |
+      package DroneMed.mappers;
+      
+      import DroneMed.models.Medication;
+      import DroneMed.models.DroneDispatch;
+      import DroneMed.models.DroneDispatchDTO;
+      import org.springframework.stereotype.Component;
+      
+      import java.util.Optional;
+      import java.util.stream.Collectors;
+      
+      @Component
+      public class DroneDispatchMapper {
+      
+          public DroneDispatchDTO droneDispatchToDroneDispatchDTO(DroneDispatch droneDispatch) {
+              return new DroneDispatchDTO(
+                      droneDispatch.getDispatchId(),
+                      droneDispatch.isCancelled(),
+                      droneDispatch.getEstimatedTime(),
+                      droneDispatch.getDrone().getSerialNumber(),
+                      droneDispatch.getDrone().getState().toString(),
+                      droneDispatch.getUser().getName(),
+                      droneDispatch.getUser().getPhoneNumber(),
+                      droneDispatch.getMedications().stream()
+                              .map(Medication::getCode).collect(Collectors.toList())
+              );
+          }
+      
+          public DroneDispatchDTO droneDispatchToDroneDispatchDTO(Optional<DroneDispatch> droneDispatch) {
+              return new DroneDispatchDTO(
+                      droneDispatch.get().getDispatchId(),
+                      droneDispatch.get().isCancelled(),
+                      droneDispatch.get().getEstimatedTime(),
+                      droneDispatch.get().getDrone().getSerialNumber(),
+                      droneDispatch.get().getDrone().getState().toString(),
+                      droneDispatch.get().getUser().getName(),
+                      droneDispatch.get().getUser().getPhoneNumber(),
+                      droneDispatch.get().getMedications().stream()
+                              .map(Medication::getCode).collect(Collectors.toList())
+              );
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/services/MedicationService.java
+    visible: true
+    text: |
+      package DroneMed.services;
+      
+      import DroneMed.mappers.MedicationMapper;
+      import DroneMed.models.Medication;
+      import DroneMed.models.MedicationDTO;
+      import DroneMed.repositories.MedicationRepository;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Service;
+      
+      import javax.transaction.Transactional;
+      import java.util.ArrayList;
+      import java.util.List;
+      import java.util.Optional;
+      import java.util.stream.Collectors;
+      
+      @Service
+      public class MedicationService {
+      
+          private final MedicationRepository repository;
+          private final MedicationMapper medicationMapper;
+      
+          @Autowired
+          public MedicationService(MedicationRepository repository, MedicationMapper medicationMapper) {
+              this.repository = repository;
+              this.medicationMapper = medicationMapper;
+          }
+      
+      
+          public List<Medication> getAllMedication() {
+              return (List<Medication>) repository.findAll();
+          }
+      
+          public String createMedication(Medication medication) {
+              try {
+                  repository.save(medication);
+                  return "The medication with code " + medication.getCode() + " was created successfully.";
+              } catch (Exception e) {
+                  return "The parameter you entered contains a null or invalid parameter, Please enter a valid medication parameter.";
+              }
+          }
+      
+         public String updateMedication(Medication medication) {
+             try {
+                 if (repository.findByCode(medication.getCode()) == null) {
+                     return "The medication with code " + medication.getCode() + " was not found.";
+                 }
+                 repository.save(medication);
+                 return "The medication with code " + medication.getCode() + " was updated successfully.";
+             } catch (Exception e) {
+                 return "The medication with code " + medication.getCode() + " was not found.";
+             }
+         }
+      
+         public String deleteMedication(String code) {
+             try {
+                 repository.delete(repository.findByCode(code));
+                 return "The medication with code " + code + " was deleted Successfully.";
+             } catch (Exception e) {
+                 return "The medication with code " + code + " was not found.";
+             }
+         }
+      
+          public Optional<Medication> getMedication(String value) {
+              return Optional.ofNullable(repository.findByCode(value));
+          }
+      
+      
+          @Transactional
+          public List<String> createMedications(List<Medication> medications) {
+              List<String> res = new ArrayList<>();
+              for (Medication m: medications) {
+                  res.add(createMedication(m));
+              }
+              return res;
+          }
+      
+          public  List<MedicationDTO> getMedicationByName(String name) {
+              return repository.findByName(name).stream()
+                      .map(medicationMapper::medicationToMedicationDTO).collect(Collectors.toList());
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/controllers/DispatchController.java
+    visible: true
+    text: |
+      package DroneMed.controllers;
+      
+      import DroneMed.models.DroneDispatch;
+      import DroneMed.models.DroneDispatchDTO;
+      import DroneMed.responses.ResponseHandler;
+      import DroneMed.services.DroneDispatchService;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.http.HttpStatus;
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.*;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      @RestController
+      @RequestMapping("/dispatch")
+      public class DispatchController {
+      
+          private final DroneDispatchService droneDispatchService;
+      
+          @Autowired
+          public DispatchController(DroneDispatchService droneDispatchService) {
+              this.droneDispatchService = droneDispatchService;
+          }
+      
+          @PostMapping("/dispatch_drone")
+          public ResponseEntity<?> dispatchDrone(@RequestBody DroneDispatch droneDispatch) {
+              String response = droneDispatchService.dispatchDrone(droneDispatch);
+              if(response.contains("not found.")) {
+                  return ResponseHandler.responseBuilder(response, HttpStatus.NOT_FOUND);
+              }
+              return ResponseHandler.responseBuilder(response, HttpStatus.OK);
+          }
+      
+          @GetMapping("/get_dispatch/{dispatchId}")
+          public ResponseEntity<?> getDispatch(@PathVariable Long dispatchId) {
+              Optional<DroneDispatchDTO> droneDispatch = droneDispatchService.getDispatch(dispatchId);
+              if(droneDispatch.isPresent()) {
+                  return ResponseHandler.responseBuilder("The drone Dispatched fetched successfully.", HttpStatus.OK, droneDispatch);
+              }
+              return ResponseHandler.responseBuilder("The drone Dispatched with id " + dispatchId + " was not found.", HttpStatus.NOT_FOUND);
+      
+          }
+      
+          @GetMapping("/get_all_dispatch")
+          public ResponseEntity<?> getAllDispatch() {
+              List<DroneDispatchDTO> droneDispatch = droneDispatchService.getAllDispatch();
+              if(droneDispatch.isEmpty()) {
+                  return ResponseHandler.responseBuilder("The drone dispatch list is empty.", HttpStatus.OK);
+              }
+              return ResponseHandler.responseBuilder("All Drone Dispatched fetched successfully.", HttpStatus.OK, droneDispatch);
+          }
+      
+      }
+    learner_created: true
+  - name: src/DroneMed/services/DroneDispatchService.java
+    visible: true
+    text: "package DroneMed.services;\n\nimport DroneMed.mappers.DroneDispatchMapper;\n\
+    import DroneMed.mappers.MedicationMapper;\nimport DroneMed.models.*;\nimport DroneMed.repositories.DroneDispatchRepository;\n\
+    import DroneMed.repositories.MedicationRepository;\nimport org.springframework.beans.factory.annotation.Autowired;\n\
+    import org.springframework.stereotype.Service;\n\n\nimport javax.transaction.Transactional;\n\
+    import java.sql.Timestamp;\nimport java.time.Instant;\nimport java.util.ArrayList;\n\
+    import java.util.List;\nimport java.util.Optional;\nimport java.util.stream.Collectors;\n\
+    \n@Service\npublic class DroneDispatchService {\n\n    private final MedicationRepository\
+    \ medicationRepository;\n    private final DroneDispatchRepository droneDispatchRepository;\n\
+    \n    private final DroneService droneService;\n    private final UserService\
+    \ userService;\n\n    private final DroneDispatchMapper droneDispatchMapper;\n\
+    \n\n    @Autowired\n    public DroneDispatchService(\n            MedicationRepository\
+    \ medicationRepository,\n            DroneDispatchRepository droneDispatchRepository,\n\
+    \            DroneService droneService,\n            UserService userService,\n\
+    \            DroneDispatchMapper droneDispatchMapper,\n            MedicationMapper\
+    \ medicationMapper\n    ) {\n        this.medicationRepository = medicationRepository;\n\
+    \        this.droneDispatchRepository = droneDispatchRepository;\n        this.droneService\
+    \ = droneService;\n        this.userService = userService;\n        this.droneDispatchMapper\
+    \ = droneDispatchMapper;\n    }\n\n    public String dispatchDrone(DroneDispatch\
+    \ droneDispatch) {\n\n        Drone drone = droneDispatch.getDrone();\n      \
+    \  String droneNullText = \"----Drone dispatch information is missing a drone!\
+    \ It should include details about the actual drone being dispatched.\";\n    \
+    \    if(drone == null) return droneNullText;\n\n        List<Medication> medications\
+    \ = droneDispatch.getMedications();\n        String medicationsNullText = \"----Drone\
+    \ dispatch information is missing medication details! It should include details\
+    \ about the actual medications being dispatched.\";\n        if(medications ==\
+    \ null) return medicationsNullText;\n\n        UserAccount userAccount = droneDispatch.getUser();\n\
+    \        String userNullText = \"-----Drone dispatch information is missing user\
+    \ account details! It should include requesting user account information.\";\n\
+    \        if(userAccount == null) return userNullText;\n        \n\n        int\
+    \ weight = getTotalWeight(droneDispatch.getDrone(), droneDispatch.getMedications());\n\
+    \        String weightLimitExceedsText = \"Drone selected cannot carry medications,\
+    \ You may reduce the number of medications or choose another drone with a larger\
+    \ capacity.\";\n        if(weight == -1) return weightLimitExceedsText;\n\n  \
+    \      int batteryCapacity = droneDispatch.getDrone().getBatteryCapacity();\n\
+    \        int batteryConsumption = droneDispatch.getEstimatedTime().toSecondOfDay()\
+    \  * 10 * 2;\n        String notEnoughBatteryText = \"Drone selected does not\
+    \ have enough battery charge to deliver medication.\";\n        if(batteryCapacity\
+    \ < batteryConsumption) return notEnoughBatteryText;\n\n        String res = checkMedicationsAvailability(droneDispatch);\n\
+    \        if(res.contains(\"not found.\")) return res;\n\n        Optional<UserAccount>\
+    \ user = userService.getUser(droneDispatch.getUser().getPhoneNumber());\n    \
+    \    if(user.isEmpty()) return \"The user with phone number \" + droneDispatch.getUser().getPhoneNumber()\
+    \ + \" was not found.\";\n\n        Drone exactDrone = droneService.getDrone(droneDispatch.getDrone().getSerialNumber());\n\
+    \        if(exactDrone == null) return \"The drone with serial number \" + droneDispatch.getDrone().getSerialNumber()\
+    \ +  \" was not found.\";\n\n        droneDispatch.setTimestamp(Timestamp.from(Instant.now()));\n\
+    \        droneDispatchRepository.save(droneDispatch);\n\n        System.out.println(\"\
+    First saved =\" + droneDispatch.toString());\n\n        drone = droneDispatch.getDrone();\n\
+    \        drone.setCurrentWeight(weight);\n        var response = droneService.updateDrone(drone);\n\
+    \        if(response.contains(\"not found.\")) return response;\n\n        for(Medication\
+    \ m: droneDispatch.getMedications()) {\n            Optional<Medication> existingMedication\
+    \ = medicationRepository.findById(m.getCode());\n            medicationRepository.save(existingMedication.get());\n\
+    \        }\n        return \"Drone dispatched successfully.\";\n    }\n\n\n  \
+    \  public Optional<DroneDispatchDTO> getDispatch(Long dispatchId) {\n        System.out.println(\"\
+    dispatchDrone: \" + droneDispatchRepository.findById(dispatchId).toString());\n\
+    \        return droneDispatchRepository.findById(dispatchId).map(droneDispatchMapper::droneDispatchToDroneDispatchDTO);\n\
+    \    }\n\n\n    public List<DroneDispatchDTO> getAllDispatch() {\n        List<DroneDispatch>\
+    \ dispatches = (List<DroneDispatch>) droneDispatchRepository.findAll();\n    \
+    \    return dispatches.stream().map(droneDispatchMapper::droneDispatchToDroneDispatchDTO).collect(Collectors.toList());\n\
+    \    }\n\n    private int getTotalWeight(Drone drone, List<Medication> medications)\
+    \ {\n        int totalWeight = 0;\n        for(Medication m: medications) {\n\
+    \            totalWeight += m.getWeight();\n        }\n        if(totalWeight\
+    \ >= drone.getMaxWeight()) return -1;\n        return totalWeight;\n    }\n\n\n\
+    \    private String checkMedicationsAvailability(DroneDispatch droneDispatch)\
+    \ {\n        for (Medication m : droneDispatch.getMedications()) {\n         \
+    \   Optional<Medication> existingMedication = medicationRepository.findById(m.getCode());\n\
+    \            if(existingMedication.isPresent()) {\n                existingMedication.get().setDroneDispatch(droneDispatch);\n\
+    \            }\n            else {\n                return \"The medication with\
+    \ code \" + m.getCode() + \" was not found.\";\n            }\n        }\n   \
+    \     return \"Medication list available.\";\n    }\n\n}\n"
+    learner_created: true
+  - name: src/DroneMed/responses/ResponseHandler.java
+    visible: true
+    text: |
+      package DroneMed.responses;
+      
+      import org.springframework.http.HttpStatus;
+      import org.springframework.http.ResponseEntity;
+      
+      import java.util.Map;
+      
+      public class ResponseHandler {
+      
+          public static <T> ResponseEntity<Map<String, Object>> responseBuilder(
+                  String message, HttpStatus httpStatus, T responseObject) {
+      
+              Map<String, Object> response = Map.of(
+                      "message", message,
+                      "httpStatus", httpStatus,
+                      "data", responseObject
+              );
+      
+              return new ResponseEntity<>(response, httpStatus);
+          }
+      
+          public static <T> ResponseEntity<Map<String, Object>> responseBuilder(
+                  String message, HttpStatus httpStatus) {
+      
+              Map<String, Object> response = Map.of(
+                      "message", message,
+                      "httpStatus", httpStatus
+              );
+      
+              return new ResponseEntity<>(response, httpStatus);
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/controllers/DroneController.java
+    visible: true
+    text: |
+      package DroneMed.controllers;
+      
+      import DroneMed.models.Drone;
+      import DroneMed.models.DroneModel;
+      import DroneMed.models.DroneState;
+      import DroneMed.responses.ResponseHandler;
+      import DroneMed.services.DroneService;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.http.HttpStatus;
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.*;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      @RestController
+      @RequestMapping("/drones")
+      public class DroneController {
+      
+          private final DroneService droneService;
+      
+          @Autowired
+          public DroneController(DroneService droneService) {
+              this.droneService = droneService;
+          }
+      
+          @PostMapping("/create_drone")
+          public ResponseEntity<?> createDrone(@RequestBody Drone drone) {
+              String res = droneService.createDrone(drone);
+              return ResponseHandler.responseBuilder(res, HttpStatus.OK);
+          }
+      
+          @PostMapping("/create_drones")
+          public ResponseEntity<?> createDrones(@RequestBody List<Drone> drones) {
+              List<String> res = droneService.createDrones(drones);
+              return ResponseHandler.responseBuilder("Drones created successfully.",HttpStatus.OK, res);
+          }
+      
+          @PutMapping("/update_drone")
+          public ResponseEntity<?> updateDrone(@RequestBody Drone drone) {
+              String res = droneService.updateDrone(drone);
+              if (res.contains("not found") ){
+                  return ResponseHandler.responseBuilder(res, HttpStatus.NOT_FOUND);
+              }
+              return ResponseHandler.responseBuilder(res, HttpStatus.OK);
+          }
+      
+          @DeleteMapping("/delete_drone/{serialNumber}")
+          public ResponseEntity<?> deleteDrone(@PathVariable String serialNumber) {
+              String response = droneService.deleteDrone(serialNumber);
+              if(response.contains("not found.")) {
+                  return ResponseHandler.responseBuilder(response, HttpStatus.NOT_FOUND);
+              }
+              return ResponseHandler.responseBuilder(response, HttpStatus.OK);
+          }
+      
+          @GetMapping("/get_drone/{serialNumber}")
+          public ResponseEntity<?> getDrone(@PathVariable String serialNumber) {
+              Drone drone = droneService.getDrone(serialNumber);
+              if(drone != null) {
+                  return ResponseHandler.responseBuilder("Drone fetched successfully.", HttpStatus.OK, drone);
+              }
+              return ResponseHandler.responseBuilder(
+                      "The drone with serial number " + serialNumber + " was not found.", HttpStatus.NOT_FOUND
+              );
+          }
+      
+          @GetMapping("/get_all_drones")
+          public ResponseEntity<?> getAllDrones() {
+              List<Drone> drones = droneService.getAllDrones();
+              if(!drones.isEmpty()) {
+                  return ResponseHandler.responseBuilder("All drones fetched successfully.", HttpStatus.OK, drones);
+              }
+              return ResponseHandler.responseBuilder("The drone list is empty.", HttpStatus.OK);
+          }
+      
+          @GetMapping("/get_drones_by_state/{state}")
+          public ResponseEntity<?> getDronesByState(@PathVariable DroneState state) {
+              List<Optional<Drone>> drones = droneService.findDroneByState(state);
+              if(drones.isEmpty()) {
+                  return ResponseHandler.responseBuilder("The drones list by state " + state + " is empty.", HttpStatus.OK);
+              }
+              return ResponseHandler.responseBuilder("Drones fetched by state.", HttpStatus.OK, drones);
+          }
+      
+          @GetMapping("/get_drones_by_model/{model}")
+          public ResponseEntity<?> getDronesByModel(@PathVariable DroneModel model) {
+              List<Optional<Drone>> drones = droneService.findDronesByModel(model);
+              if(drones.isEmpty()) {
+                  return ResponseHandler.responseBuilder("The drones list by model " + model + " is empty.", HttpStatus.OK);
+              }
+              return ResponseHandler.responseBuilder("Drones fetched by model.", HttpStatus.OK, drones);
+          }
+      
+          @GetMapping("/get_drones_by_charge/{percentage}")
+          public ResponseEntity<?> getDronesByCharge(@PathVariable int percentage) {
+              List<Optional<Drone>> drones = droneService.findDronesByBatteryCapacityAfter(percentage);
+              if(drones.isEmpty()) {
+                  return ResponseHandler.responseBuilder("The drones list by percentage " + percentage + " is empty.", HttpStatus.OK);
+              }
+              return ResponseHandler.responseBuilder("Drones fetched by charge.", HttpStatus.OK, drones);
+          }
+      
+      }
+    learner_created: true
+  - name: src/DroneMed/services/UserService.java
+    visible: true
+    text: |
+      package DroneMed.services;
+      
+      import DroneMed.models.Drone;
+      import DroneMed.models.UserAccount;
+      import DroneMed.repositories.DroneRepository;
+      import DroneMed.repositories.UserAccountRepository;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.stereotype.Service;
+      
+      import javax.transaction.Transactional;
+      import java.util.ArrayList;
+      import java.util.List;
+      import java.util.Optional;
+      
+      @Service
+      public class UserService {
+      
+          private final UserAccountRepository repository;
+      
+          @Autowired
+          public UserService(UserAccountRepository repository) {
+              this.repository = repository;
+          }
+      
+          public List<UserAccount> getAllUsers() {
+              return (List<UserAccount>) repository.findAll();
+          }
+      
+      
+          public String createUser(UserAccount userAccount) {
+              try {
+                  repository.save(userAccount);
+                  return "The user with phone number " + userAccount.getPhoneNumber() + " was created successfully.";
+              } catch (Exception e) {
+                  return "The parameter you entered contains a null or invalid parameter, Please enter a valid user account parameter.";
+              }
+          }
+      
+          public String updateUser(UserAccount userAccount) {
+              try {
+                  if (repository.findByPhoneNumber(userAccount.getPhoneNumber()) == null) {
+                      return "The user with phone number " + userAccount.getPhoneNumber() + " was not found.";
+                  }
+                  repository.save(userAccount);
+                  return "The user with phone number " + userAccount.getPhoneNumber() + " was updated successfully.";
+              } catch (Exception e) {
+                  return "The user with phone number " + userAccount.getPhoneNumber() + " was not found.";
+              }
+          }
+      
+      
+          public String deleteUser(String phoneNumber) {
+              try {
+                  repository.delete(repository.findByPhoneNumber(phoneNumber));
+                  return "The user with phone number " + phoneNumber + " was deleted Successfully.";
+              } catch (Exception e) {
+                  return "The user with phone number " + phoneNumber + " was not found.";
+              }
+          }
+      
+          public Optional<UserAccount> getUser(String phoneNumber) {
+              return Optional.ofNullable(repository.findByPhoneNumber(phoneNumber));
+          }
+      
+      
+          @Transactional
+          public List<String> createUsers(List<UserAccount> users) {
+              List<String> res = new ArrayList<>();
+              for (UserAccount u: users) {
+                  res.add(createUser(u));
+              }
+              return res;
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/mappers/MedicationMapper.java
+    visible: true
+    text: |
+      package DroneMed.mappers;
+      
+      import DroneMed.models.Medication;
+      import DroneMed.models.MedicationDTO;
+      import org.springframework.stereotype.Component;
+      
+      import java.util.Optional;
+      
+      @Component
+      public class MedicationMapper {
+          public MedicationDTO medicationToMedicationDTO(Medication medication) {
+              long dispatchID = medication.getDroneDispatch() == null ? -1L : medication.getDroneDispatch().getDispatchId();
+              return new MedicationDTO(
+                      medication.getCode(),
+                      medication.getName(),
+                      medication.getWeight(),
+                      medication.getImageURL(),
+                      dispatchID
+              );
+          }
+      
+          public MedicationDTO medicationToMedicationDTO(Optional<Medication> medication) {
+              long dispatchID = medication.get().getDroneDispatch() == null ? -1L : medication.get().getDroneDispatch().getDispatchId();
+              return new MedicationDTO(
+                      medication.get().getCode(),
+                      medication.get().getName(),
+                      medication.get().getWeight(),
+                      medication.get().getImageURL(),
+                      dispatchID
+              );
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/models/DroneDispatch.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      import javax.persistence.*;
+      import javax.validation.constraints.NotNull;
+      import java.sql.Timestamp;
+      import java.time.LocalTime;
+      import java.util.List;
+      
+      @Entity
+      public class DroneDispatch {
+          @Id
+          @GeneratedValue(strategy = GenerationType.AUTO)
+          private Long dispatchId;
+      
+          @NotNull
+          private boolean cancelled;
+      
+          @NotNull
+          private LocalTime estimatedTime;
+          //LocalTime.of(2, 30))
+      
+          private Timestamp timestamp;
+      
+          @OneToOne
+          @JoinColumn(name = "serialNumber")
+          private Drone drone;
+      
+          @OneToOne
+          @JoinColumn(name = "phoneNumber")
+          private UserAccount user;
+      
+          @OneToMany(mappedBy = "droneDispatch")
+          private List<Medication> medications;
+      
+          public DroneDispatch() {
+          }
+      
+          public DroneDispatch(
+                  Long dispatchId,
+                  boolean cancelled,
+                  LocalTime estimatedTime,
+                  Timestamp timestamp,
+                  Drone drone,
+                  UserAccount user,
+                  List<Medication> medications
+          ) {
+              this.dispatchId = dispatchId;
+              this.cancelled = cancelled;
+              this.estimatedTime = estimatedTime;
+              this.timestamp = timestamp;
+              this.drone = drone;
+              this.user = user;
+              this.medications = medications;
+          }
+      
+          public Long getDispatchId() {
+              return dispatchId;
+          }
+      
+          public void setDispatchId(Long dispatchId) {
+              this.dispatchId = dispatchId;
+          }
+      
+          public boolean isCancelled() {
+              return cancelled;
+          }
+      
+          public void setCancelled(boolean cancelled) {
+              this.cancelled = cancelled;
+          }
+      
+          public LocalTime getEstimatedTime() {
+              return estimatedTime;
+          }
+      
+          public void setEstimatedTime(LocalTime estimatedTime) {
+              this.estimatedTime = estimatedTime;
+          }
+      
+          public Timestamp getTimestamp() {
+              return timestamp;
+          }
+      
+          public void setTimestamp(Timestamp timestamp) {
+              this.timestamp = timestamp;
+          }
+      
+          public Drone getDrone() {
+              return drone;
+          }
+      
+          public void setDrone(Drone drone) {
+              this.drone = drone;
+          }
+      
+          public UserAccount getUser() {
+              return user;
+          }
+      
+          public void setUser(UserAccount user) {
+              this.user = user;
+          }
+      
+          public List<Medication> getMedications() {
+              return medications;
+          }
+      
+          public void setMedications(List<Medication> medications) {
+              this.medications = medications;
+          }
+      
+          @Override
+          public String toString() {
+              return "DroneDispatch{" +
+                      "dispatchId=" + dispatchId +
+                      ", cancelled=" + cancelled +
+                      ", estimatedTime=" + estimatedTime +
+                      ", timestamp=" + timestamp +
+                      ", drone=" + drone +
+                      ", user=" + user +
+                      ", medications=" + medications +
+                      '}';
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/repositories/UserAccountRepository.java
+    visible: true
+    text: |
+      package DroneMed.repositories;
+      
+      import DroneMed.models.UserAccount;
+      import org.springframework.data.jpa.repository.JpaRepository;
+      import org.springframework.data.repository.CrudRepository;
+      
+      public interface UserAccountRepository extends JpaRepository<UserAccount, String> {
+          UserAccount findByPhoneNumber(String phoneNumber);
+      }
+    learner_created: true
+  - name: src/DroneMed/controllers/UserController.java
+    visible: true
+    text: |
+      package DroneMed.controllers;
+      
+      import DroneMed.models.UserAccount;
+      import DroneMed.responses.ResponseHandler;
+      import DroneMed.services.UserService;
+      import org.springframework.beans.factory.annotation.Autowired;
+      import org.springframework.http.HttpStatus;
+      import org.springframework.http.ResponseEntity;
+      import org.springframework.web.bind.annotation.*;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      @RestController
+      @RequestMapping("/users")
+      public class UserController {
+          private final UserService userService;
+      
+          @Autowired
+          public UserController(UserService userService) {
+              this.userService = userService;
+          }
+      
+          @PostMapping("/create_user")
+          public ResponseEntity<?> createUser(@RequestBody UserAccount userAccount) {
+              String res = userService.createUser(userAccount);
+              if(res.contains("not found.")) {
+                  return ResponseHandler.responseBuilder(res, HttpStatus.NOT_FOUND);
+              }
+              return ResponseHandler.responseBuilder(res, HttpStatus.OK);
+          }
+      
+          @PostMapping("/create_users")
+          public ResponseEntity<?> createUsers(@RequestBody List<UserAccount> userAccounts) {
+              List<String> res = userService.createUsers(userAccounts);
+              return ResponseHandler.responseBuilder("Users created successfully.", HttpStatus.OK, res);
+          }
+      
+          @PutMapping("/update_user")
+          public ResponseEntity<?> updateUser(@RequestBody UserAccount user) {
+              String res = userService.updateUser(user);
+              if(res.contains("not found.")) {
+                  return ResponseHandler.responseBuilder(res, HttpStatus.NOT_FOUND);
+              }
+              return ResponseHandler.responseBuilder(res, HttpStatus.OK);
+          }
+      
+          @DeleteMapping("/delete_user/{phoneNumber}")
+          public ResponseEntity<?> deleteUser(@PathVariable String phoneNumber) {
+              String res = userService.deleteUser(phoneNumber);
+              if(res.contains("not found.")) {
+                  return ResponseHandler.responseBuilder(res, HttpStatus.NOT_FOUND);
+              }
+              return ResponseHandler.responseBuilder(res, HttpStatus.OK);
+          }
+      
+          @GetMapping("/get_user/{phoneNumber}")
+          public ResponseEntity<?> getUser(@PathVariable String phoneNumber) {
+              Optional<UserAccount> userAccount = userService.getUser(phoneNumber);
+              if(userAccount.isPresent()) {
+                  return ResponseHandler.responseBuilder("User fetched successfully.", HttpStatus.OK, userAccount);
+              }
+              return ResponseHandler.responseBuilder("The user with phone number " + phoneNumber + " was not found.", HttpStatus.NOT_FOUND);
+          }
+      
+          @GetMapping("/get_all_users")
+          public ResponseEntity<?> getAllUsers() {
+              List<UserAccount> userAccounts = userService.getAllUsers();
+              if(!userAccounts.isEmpty()) {
+                  return ResponseHandler.responseBuilder("All users fetched successfully.", HttpStatus.OK, userAccounts);
+              }
+              return ResponseHandler.responseBuilder("The user list is empty.", HttpStatus.OK);
+          }
+      
+      }
+    learner_created: true
+  - name: src/DroneMed/models/DroneDispatchDTO.java
+    visible: true
+    text: |
+      package DroneMed.models;
+      
+      import lombok.Data;
+      
+      import java.time.LocalTime;
+      import java.util.List;
+      
+      public class DroneDispatchDTO {
+          private Long dispatchId;
+          private Boolean cancelled;
+          private LocalTime estimatedTime;
+          private String droneID;
+          private String droneStatus;
+          private String userName;
+          private String userPhoneNumber;
+          private List<String> medicationCodes;
+      
+          public DroneDispatchDTO(
+                  Long dispatchId,
+                  Boolean cancelled,
+                  LocalTime estimatedTime,
+                  String droneID,
+                  String droneStatus,
+                  String userName,
+                  String userPhoneNumber,
+                  List<String> medicationCodes
+          ) {
+              this.dispatchId = dispatchId;
+              this.cancelled = cancelled;
+              this.estimatedTime = estimatedTime;
+              this.droneID = droneID;
+              this.droneStatus = droneStatus;
+              this.userName = userName;
+              this.userPhoneNumber = userPhoneNumber;
+              this.medicationCodes = medicationCodes;
+          }
+      
+          public Long getDispatchId() {
+              return dispatchId;
+          }
+      
+          public void setDispatchId(Long dispatchId) {
+              this.dispatchId = dispatchId;
+          }
+      
+          public Boolean getCancelled() {
+              return cancelled;
+          }
+      
+          public void setCancelled(Boolean cancelled) {
+              this.cancelled = cancelled;
+          }
+      
+          public LocalTime getEstimatedTime() {
+              return estimatedTime;
+          }
+      
+          public void setEstimatedTime(LocalTime estimatedTime) {
+              this.estimatedTime = estimatedTime;
+          }
+      
+          public String getDroneID() {
+              return droneID;
+          }
+      
+          public void setDroneID(String droneID) {
+              this.droneID = droneID;
+          }
+      
+          public String getDroneStatus() {
+              return droneStatus;
+          }
+      
+          public void setDroneStatus(String droneStatus) {
+              this.droneStatus = droneStatus;
+          }
+      
+          public String getUserName() {
+              return userName;
+          }
+      
+          public void setUserName(String userName) {
+              this.userName = userName;
+          }
+      
+          public String getUserPhoneNumber() {
+              return userPhoneNumber;
+          }
+      
+          public void setUserPhoneNumber(String userPhoneNumber) {
+              this.userPhoneNumber = userPhoneNumber;
+          }
+      
+          public List<String> getMedicationCodes() {
+              return medicationCodes;
+          }
+      
+          public void setMedicationCodes(List<String> medicationCodes) {
+              this.medicationCodes = medicationCodes;
+          }
+      }
+    learner_created: true
+  - name: src/DroneMed/repositories/MedicationRepository.java
+    visible: true
+    text: |
+      package DroneMed.repositories;
+      
+      import DroneMed.models.Medication;
+      import org.springframework.data.jpa.repository.JpaRepository;
+      import org.springframework.data.repository.CrudRepository;
+      
+      import java.util.List;
+      import java.util.Optional;
+      
+      public interface MedicationRepository extends JpaRepository<Medication, String> {
+          Medication findByCode(String code);
+          List<Optional<Medication>> findByName(String name);
+      
+      }
+    learner_created: true
+  - name: log/dipatchinfo
+    visible: true
+    learner_created: true
+  - name: log/dispatchlog.txt
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/Runner.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/models/Account.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/models/DroneModel.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/models/DroneState.java
+    visible: true
+    learner_created: true
 feedback_link: https://hyperskill.org/learn/step/45549#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Congratulations!
+  time: "Tue, 23 Apr 2024 03:09:38 UTC"
 record: -1

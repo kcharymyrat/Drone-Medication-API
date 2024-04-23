@@ -1,6 +1,7 @@
 package DroneMed.controllers;
 
 import DroneMed.models.Medication;
+import DroneMed.models.MedicationDTO;
 import DroneMed.responses.ResponseHandler;
 import DroneMed.services.MedicationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,11 +68,19 @@ public class MedicationController {
     @GetMapping("/get_all_medications")
     public ResponseEntity<?> getAllMedication() {
         List<Medication> medications = medicationService.getAllMedication();
-        if(!medications.isEmpty()) {
-            return ResponseHandler.responseBuilder("All medications fetched successfully.", HttpStatus.OK, medications);
+        if(medications.isEmpty()) {
+            return ResponseHandler.responseBuilder("The medication list is empty.", HttpStatus.OK);
         }
-        else  return ResponseHandler.responseBuilder("The medication list is empty.", HttpStatus.OK);
+        return ResponseHandler.responseBuilder("All medications fetched successfully.", HttpStatus.OK, medications);
     }
 
+    @GetMapping("/get_by_name/{name}")
+    public ResponseEntity<?> getMedicationByName(@PathVariable String name) {
+        List<MedicationDTO> medication = medicationService.getMedicationByName(name);
+        if(medication.isEmpty()) {
+            return ResponseHandler.responseBuilder("The medication list by name " + name + " is empty.", HttpStatus.OK);
+        }
+        return ResponseHandler.responseBuilder("Medications fetched successfully.", HttpStatus.OK, medication);
+    }
 
 }

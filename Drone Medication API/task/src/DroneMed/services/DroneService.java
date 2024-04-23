@@ -1,5 +1,7 @@
 package DroneMed.services;
 
+import DroneMed.models.DroneModel;
+import DroneMed.models.DroneState;
 import DroneMed.repositories.DroneRepository;
 import DroneMed.models.Drone;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class DroneService {
@@ -56,7 +59,6 @@ public class DroneService {
         return repository.findBySerialNumber(serialNumber);
     }
 
-
     @Transactional
     public List<String> createDrones(List<Drone> drones) {
         List<String> res = new ArrayList<>();
@@ -65,4 +67,17 @@ public class DroneService {
         }
         return res;
     }
+
+    public List<Optional<Drone>> findDroneByState(DroneState state) {
+        return repository.findDronesByState(state);
+    }
+
+    public List<Optional<Drone>> findDronesByModel(DroneModel model) {
+        return repository.findDronesByModel(model);
+    }
+
+    public List<Optional<Drone>> findDronesByBatteryCapacityAfter(int percentage) {
+        return repository.findDronesByBatteryCapacityAfter(percentage);
+    }
+
 }
