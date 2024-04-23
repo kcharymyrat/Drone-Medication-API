@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/dispatch")
+@RequestMapping("/api/dispatch")
 public class DispatchController {
 
     private final DroneDispatchService droneDispatchService;

@@ -3416,6 +3416,28 @@ files:
       
       }
     learner_created: true
+  - name: src/DroneMed/models/AppUser.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/repositories/AppUserRepository.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/security/SecurityConfig.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/controllers/RegistrationController.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/services/AppUserAdapter.java
+    visible: true
+    learner_created: true
+  - name: src/DroneMed/services/AppUserDetailsService.java
+    visible: true
+    learner_created: true
 feedback_link: https://hyperskill.org/learn/step/45550#comment
-status: Unchecked
+status: Solved
+feedback:
+  message: Well done! You've finished the project. Select a new project on <a href="https://hyperskill.org/projects">Hyperskill</a>
+    to continue learning.
+  time: "Tue, 23 Apr 2024 09:50:42 UTC"
 record: -1

@@ -19,7 +19,7 @@ stages:
     is_completed: true
   - id: 2612
     step: 45550
-    is_completed: false
+    is_completed: true
 topics:
   0:
     - title: Data structures
